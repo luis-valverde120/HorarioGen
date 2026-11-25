@@ -2,10 +2,10 @@
 
 ## Baseline
 
-- Active baseline: HorarioGen `v0.1.4`, copied from the last functional delivery into this working repository.
+- Release baseline: HorarioGen `v0.1.4`. The working tree contains the UPEC scheduling evolution. The version marker is unchanged.
 - The app is a Spanish-language local scheduler with a FastAPI backend, a Next.js frontend, a genetic optimization engine, CSV/Excel import, teacher/subject weekly-load planning, classroom occupancy simulation, and CSV export.
 - The source migration intentionally omitted generated frontend dependencies/build output and runtime `storage/`; the launcher creates runtime storage as needed. Example source datasets remain under `data/`.
-- A local Git repository is initialized on branch `main`, with `origin` configured to the user-provided GitHub URL. No commits or pushes have been made.
+- The checkout tracks `origin/main`. This change is uncommitted.
 
 ## Baseline capabilities and constraints
 
@@ -17,9 +17,16 @@
 
 ## Verification record
 
-The prior v0.1.4 delivery reports 53 passing automated tests, a successful frontend production build and type checks, DOM-level component checks, and a successful API integration scenario for a ten-hour subject. These are historical results from the source delivery; this repository migration has not rerun that suite. A desktop browser visual check was not completed in that environment.
+- The current backend suite passed 58 tests. The two reference scenarios completed with zero hard violations using 16 synthetic teachers and rooms 206–212.
+- The Next.js production build passed with type checking.
+- Browser smoke verification loaded the 18-group UPEC scenario, observed a completed run and six engine events, and rendered the weekly schedule and seven rooms. At a 390 px viewport the document fit the page and the week grid scrolled inside its panel. An impossible Saturday window produced visible diagnostics through keyboard activation.
+- A three-run legacy scenario engine spot check used seed 42, population 20, six generations, and a two-second cap. Both the previous search and the current search with memory returned `(0, 31)` every time. Median elapsed time was 0.450 s and 0.518 s respectively. This measures one scenario and excludes API persistence.
 
-The migration was verified by SHA-256 comparison of 38 functional source files, with no mismatches. Generated dependencies, build output, and runtime storage are absent from the new checkout. No product tests were run because this task changed repository setup and documentation only.
+## UPEC working tree
+
+- Curriculum source, period label, synthetic demonstration, and fixed versus configurable calendar rules are described in [Scheduling model](../SCHEDULING_MODEL.md).
+- Live working memory, events, candidate preview, and cancellation are described in [Optimization working memory](../WORKING_MEMORY.md).
+- The application retains its legacy demonstration. Institutional teacher identities, availability, room capabilities, and verified offerings remain pending. One reference curriculum version is bundled.
 
 ## Environment and startup
 

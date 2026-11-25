@@ -1,7 +1,7 @@
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 
-from .domain import within_campus_hours, within_semester_shift, occupies_group
+from .domain import occupies_group
 
 
 @dataclass
@@ -11,6 +11,7 @@ class Evaluation:
     coverage: dict
     conflicts: list
     workload: dict
+    occupancy: dict | None = None
 
     @property
     def score(self):
@@ -26,7 +27,7 @@ def contained(slot, windows):
                for w in windows)
 
 
-def evaluate(sessions, genes, rules, details=False):
+def evaluate(sessions, genes, rules, details=False, *, include_resources=False):
     hard = Counter(dict.fromkeys(
         ("teacher", "room", "group", "unassigned", "extra", "duration", "capacity", "availability", "workload", "campus_hours", "semester_shift", "group_room", "teaching_days"), 0))
     soft = Counter(dict.fromkeys(("rescheduled", "room_changes", "gaps", "preferences", "course_distribution"), 0))
@@ -56,9 +57,9 @@ def evaluate(sessions, genes, rules, details=False):
             course_days[key] += 1
         if slot.duration != session.original.slot.duration:
             violation("duration", session.id)
-        if rules.enforce_hours and not within_campus_hours(slot):
+        if not rules.campus_allows(slot):
             violation("campus_hours", session.id)
-        if rules.enforce_hours and not within_semester_shift(session, slot):
+        if not rules.group_allows(session, slot):
             violation("semester_shift", session.id)
         assigned_room = (rules.group_rooms or {}).get(session.group_key)
         if occupies_group(session) and assigned_room and gene.room != assigned_room:
@@ -67,8 +68,10 @@ def evaluate(sessions, genes, rules, details=False):
         resources = [("teacher", session.teacher), ("room", gene.room)]
         if occupies_group(session):
             resources.append(("group", session.group))
-        if session.tutoring and slot != session.original.slot:
+        if session.tutoring and rules.fixed(session) and gene != session.original:
             violation("availability", session.id)
+        if session.id in rules.locked_sessions and gene != session.original:
+            violation("locked_assignment", session.id)
         for kind, resource in resources:
             buckets[kind, resource, slot.day].append((slot.start, slot.end, session.id))
         size = rules.enrollments.get(session.id)
@@ -87,7 +90,7 @@ def evaluate(sessions, genes, rules, details=False):
         soft["rescheduled"] += 3 * (slot != session.original.slot)
         soft["room_changes"] += gene.room != session.original.room
 
-    for (kind, _, _), intervals in buckets.items():
+    for (kind, resource, day), intervals in buckets.items():
         if len(intervals) < 2:
             continue
         active = []
@@ -96,8 +99,13 @@ def evaluate(sessions, genes, rules, details=False):
             active = [(until, previous) for until, previous in active if until > start]
             for _, previous in active:
                 violation(kind, previous, session_id)
-            if kind == "group" and latest_end and start > latest_end:
-                soft["gaps"] += (start - latest_end + 59) // 60
+                if details and include_resources:
+                    conflicts[-1].update(resource=resource, day=day)
+            if latest_end and start > latest_end:
+                if kind == "group":
+                    soft["gaps"] += (start - latest_end + 59) // 60
+                elif kind == "teacher" and rules.soft_weights.get("teacher_gaps"):
+                    soft["teacher_gaps"] += (start - latest_end + 59) // 60
             latest_end = max(latest_end, end)
             active.append((end, session_id))
     for teacher, target in rules.weekly_minutes.items():
@@ -107,5 +115,10 @@ def evaluate(sessions, genes, rules, details=False):
                 conflicts.append({"type": "workload", "teacher": teacher, "sessions": []})
     workload = {teacher: {"scheduled": minutes[teacher], "target": rules.weekly_minutes.get(teacher)}
                 for teacher in sorted({session.teacher for session in sessions})} if details else {}
-    return Evaluation(dict(hard), dict(soft), dict(coverage), conflicts, workload)
+    if rules.soft_weights:
+        for name, weight in rules.soft_weights.items():
+            measured = soft[name] // 3 if name == "rescheduled" else soft[name]
+            soft[name] = measured * weight
+    return Evaluation(dict(hard), dict(soft), dict(coverage), conflicts, workload,
+                      dict(buckets) if include_resources else None)
 

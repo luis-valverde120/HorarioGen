@@ -3,20 +3,31 @@ import {useEffect,useState} from "react";
 import {ArrowRight,DoorOpen,Pause,Play,RotateCcw} from "lucide-react";
 import {Button,Card} from "./ui";
 import type {AcademicSession} from "./teaching-planner";
-const DAYS=["Lunes","Martes","Miércoles","Jueves","Viernes"];
+import {calendarWindows, SPANISH_WEEKDAYS as DAYS} from "./calendar-windows";
 const clock=(m:number)=>String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
-export function RoomFlow({rows,rooms,colors,generated}:{rows:AcademicSession[];rooms:string[];colors:Map<string,string>;generated:boolean}){
+export function RoomFlow({rows,rooms,colors,generated,campus}:{rows:AcademicSession[];rooms:string[];colors:Map<string,string>;generated:boolean;campus?:string[]|null}){
  const [frame,setFrame]=useState(0),[playing,setPlaying]=useState(false),[speed,setSpeed]=useState(900);
- useEffect(()=>{if(!playing)return;const timer=setInterval(()=>setFrame(n=>{if(n>=129){setPlaying(false);return 129;}return n+1;}),speed);return()=>clearInterval(timer);},[playing,speed]);
+ const windows=calendarWindows(campus);
+ const days=[...new Set([...(windows.length?windows.map(w=>w.day):[0,1,2,3,4]),...rows.map(row=>row.day)])].sort();
+ const start=Math.floor(Math.min(420,...windows.map(w=>w.start),...rows.map(row=>row.start))/30)*30;
+ const end=Math.ceil(Math.max(1200,...windows.map(w=>w.end),...rows.map(row=>row.end))/30)*30;
+ const steps=(end-start)/30, last=steps*days.length-1;
+ const current=Math.min(frame,last);
+ useEffect(()=>{
+  if(!playing)return;
+  if(current>=last){setPlaying(false);return;}
+  const timer=setTimeout(()=>setFrame(current+1),speed);
+  return()=>clearTimeout(timer);
+ },[playing,current,last,speed]);
  useEffect(()=>{setPlaying(false);setFrame(0);},[rows]);
- const day=Math.floor(frame/26),minute=420+(frame%26)*30;
- const lunch=minute>=780&&minute<840;
+ const dayIndex=Math.floor(current/steps),day=days[dayIndex],minute=start+(current%steps)*30;
+ const lunch=minute>=780&&minute<840&&!windows.some(w=>w.day===day&&w.start<=minute&&minute<w.end);
  const active=rows.filter(s=>s.day===day&&s.start<=minute&&minute<s.end);
  const occupied=new Set(active.map(s=>s.room));
  return <Card id="flujo-aulas" className="product-card">
   <div className="planning-heading"><div><h2 className="text-xl font-bold flex items-center gap-2"><DoorOpen size={22}/> Flujo de las aulas</h2><p className="muted mt-1">Recorre la semana para ver qué se imparte, quién ocupa cada aula y cuál es la siguiente actividad.</p></div><span className="planning-badge">{generated?"Horario generado":"Vista del horario inicial"}</span></div>
-  <div className="flow-controls"><label className="label">Día de simulación<select className="field" aria-label="Día de simulación" value={day} onChange={e=>{setPlaying(false);setFrame(Number(e.target.value)*26+frame%26);}}>{DAYS.map((d,i)=><option key={d} value={i}>{d}</option>)}</select></label><div className="flow-clock"><span>{DAYS[day]}</span><strong>{clock(minute)}</strong><small>{lunch?"Receso de almuerzo":minute<780?"Jornada de mañana":"Jornada de tarde"}</small></div><div className="flow-count"><strong>{occupied.size} / {rooms.length}</strong><span>aulas ocupadas</span></div><Button type="button" variant="outline" onClick={()=>{setPlaying(false);setFrame(0);}}><RotateCcw size={16}/> Reiniciar</Button><Button type="button" disabled={!rows.length} onClick={()=>{if(frame===129)setFrame(0);setPlaying(p=>!p);}}>{playing?<Pause size={16}/>:<Play size={16}/>} {playing?"Pausar simulación":"Reproducir simulación"}</Button></div>
-  <div className="flow-slider"><label htmlFor="room-time">Hora de simulación · pasos de 30 minutos</label><input id="room-time" aria-label="Hora de simulación" type="range" min={0} max={25} value={frame%26} onChange={e=>{setPlaying(false);setFrame(day*26+Number(e.target.value));}}/><div><span>07:00</span><span>13:00 · Receso · 14:00</span><span>19:30</span></div></div>
+  <div className="flow-controls"><label className="label">Día de simulación<select className="field" value={dayIndex} onChange={e=>{setPlaying(false);setFrame(Number(e.target.value)*steps+current%steps);}}>{days.map((d,i)=><option key={d} value={i}>{DAYS[d]}</option>)}</select></label><div className="flow-clock"><span>{DAYS[day]}</span><strong>{clock(minute)}</strong><small>{lunch?"Receso de almuerzo":minute<780?"Jornada de mañana":"Jornada de tarde"}</small></div><div className="flow-count"><strong>{occupied.size} / {rooms.length}</strong><span>aulas ocupadas</span></div><Button type="button" variant="outline" onClick={()=>{setPlaying(false);setFrame(0);}}><RotateCcw size={16}/> Reiniciar</Button><Button type="button" disabled={!rows.length} onClick={()=>{if(current===last)setFrame(0);setPlaying(p=>!p);}}>{playing?<Pause size={16}/>:<Play size={16}/>} {playing?"Pausar simulación":"Reproducir simulación"}</Button></div>
+  <div className="flow-slider"><label htmlFor="room-time">Hora de simulación · pasos de 30 minutos</label><input id="room-time" type="range" min={0} max={steps-1} value={current%steps} aria-valuetext={clock(minute)} onChange={e=>{setPlaying(false);setFrame(dayIndex*steps+Number(e.target.value));}}/><div><span>{clock(start)}</span><span>{clock(end-30)}</span></div></div>
   <div className="room-map">{rooms.map(room=>{
    const now=active.filter(s=>s.room===room);
    const next=rows.filter(s=>s.room===room&&(s.day>day||s.day===day&&s.start>minute)).sort((a,b)=>a.day-b.day||a.start-b.start)[0];

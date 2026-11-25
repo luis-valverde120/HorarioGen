@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState, type FormEvent, type CSSProperties } from "react";
+import { AcademicReference, type Curriculum } from "../components/academic-reference";
+import { WorkingMemoryPanel, type Memory } from "../components/working-memory";
+import { calendarWindows } from "../components/calendar-windows";
 import { Activity, ArrowDown, ArrowRight, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Database, Download, FileUp, LayoutDashboard, Pause, Play, Search, Settings2, Users, DoorOpen, Layers3, WifiOff, Workflow } from "lucide-react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Button, Card } from "@/components/ui";
@@ -44,11 +47,12 @@ function teacherStyle(color: string): CSSProperties {
 
 type Dataset = {
   id: string; name: string; count: number; rooms?: string[]; classes?: number; tutoring?: number;
-  warnings?: string[]; rules?: { availability?: Record<string, string[]>; weekly_minutes?: Record<string, number>; group_rooms?: Record<string, string>; session_days?: Record<string, number[]> };
+  warnings?: string[]; rules?: { availability?: Record<string, string[]>; weekly_minutes?: Record<string, number>; group_rooms?: Record<string, string>; session_days?: Record<string, number[]>; campus_windows?: string[] | null; group_windows?: Record<string, string[]> };
 };
 type Session = { kind?: "class" | "tutoring"; group_key?: string; id: number; course: string; teacher: string; program: string; major: string; level: string; section: string; room: string; day: number; start: number; end: number; slot: string };
 type Point = { generation: number; hard: number; soft: number; elapsed: number };
-type Run = { id: string; status: "queued" | "running" | "completed" | "failed"; progress: Point | null; error?: string };
+type Run = { id: string; status: "queued" | "running" | "completed" | "failed" | "cancelled"; progress: Point | null; error?: string };
+type Validation = { can_optimize: boolean; errors: { message: string }[]; warnings: { message: string }[] };
 type Evaluation = { hard: Record<string, number>; soft: Record<string, number>; coverage: Record<string, number>; score: [number, number]; feasible: boolean; conflicts: { type: string; teacher?: string; sessions: number[] }[]; workload?: Workload };
 type Result = { original: Session[]; optimized: Session[]; baseline: Evaluation; evaluation: Evaluation };
 type Metrics = { history: Point[]; best: Point | null; reason: string | null };
@@ -67,19 +71,22 @@ function clock(minutes: number) {
   return [Math.floor(minutes / 60), minutes % 60].map(n => String(n).padStart(2, "0")).join(":");
 }
 
-function Schedule({ rows, colors }: { rows: Session[]; colors: Map<string, string> }) {
+function Schedule({ rows, colors, campus }: { rows: Session[]; colors: Map<string, string>; campus?: string[] | null }) {
   const [detail, setDetail] = useState<Session | null>(null);
   const levels = [...new Set(rows.map(row => row.level))];
   const semester = levels.length === 1 ? Number(levels[0]?.match(/^Semestre ([1-9])$/)?.[1]) : 0;
   const shiftStart = semester % 2 ? 420 : 840;
   const shiftEnd = semester % 2 ? 780 : 1200;
-  const focused = semester > 0 && rows.every(row => row.start >= shiftStart && row.end <= shiftEnd);
-  const begin = focused ? shiftStart : 420;
-  const finish = focused ? shiftEnd : 1200;
+  const focused = !campus && semester > 0 && rows.every(row => row.start >= shiftStart && row.end <= shiftEnd);
+  const begin = focused ? shiftStart : Math.min(420, ...rows.map(row => row.start));
+  const finish = focused ? shiftEnd : Math.max(1200, ...rows.map(row => row.end));
   const general = new Set(rows.filter(row => row.kind !== "tutoring").map(row => row.group_key)).size > 1;
   const startHour = Math.floor(begin / 60);
   const endHour = Math.ceil(finish / 60);
-  const visibleDays = Array.from({ length: Math.max(5, ...rows.map(row => row.day + 1)) }, (_, index) => index);
+  const windows = calendarWindows(campus);
+  const visibleDays = campus
+    ? [...new Set([...windows.map(window => window.day), ...rows.map(row => row.day)])].sort()
+    : Array.from({ length: Math.max(5, ...rows.map(row => row.day + 1)) }, (_, index) => index);
   const ticks = Array.from({ length: endHour - startHour }, (_, index) => startHour + index);
 
   function placements(day: number) {
@@ -122,7 +129,8 @@ function Schedule({ rows, colors }: { rows: Session[]; colors: Map<string, strin
         <div className="week-ruler" style={{ height: ticks.length * 90 }}>{ticks.map(hour => <span key={hour} style={{ top: (hour - startHour) * 90 }}>{clock(hour * 60)}</span>)}</div>
         {visibleDays.map(day => <div className="week-day" key={day} style={{ height: ticks.length * 90 }}>
           {ticks.map(hour => <div aria-hidden className="week-line" key={hour} style={{ top: (hour - startHour) * 90 }} />)}
-          {begin <= 780 && finish >= 840 && <div className="lunch-break" style={{top:(13-startHour)*90,height:90}}>Receso</div>}
+          {begin <= 780 && finish >= 840 && !windows.some(window => day === window.day && window.start < 840 && window.end > 780)
+            && <div className="lunch-break" style={{top:(13-startHour)*90,height:90}}>Receso</div>}
           {placements(day).map(({ row, lane, count }) => <button
             type="button" key={row.id} onClick={() => setDetail(row)}
             className={"week-event " + (row.kind === "tutoring" ? "tutoring-event" : "")}
@@ -253,6 +261,13 @@ function TutoringEditor({ teachers, rooms, sessions, items, onChange, disabled }
 }
 
 export default function Home() {
+  const [curriculum, setCurriculum] = useState<Curriculum | null>(null);
+  const [memory, setMemory] = useState<Memory | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [validation, setValidation] = useState<Validation | null>(null);
+  const [lockedSessions, setLockedSessions] = useState<number[]>([]);
+  const [campusOverride, setCampusOverride] = useState<string | null>(null);
+  const [shiftOverrides, setShiftOverrides] = useState<Record<string, string>>({});
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selected, setSelected] = useState("");
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -303,6 +318,14 @@ export default function Home() {
   useEffect(() => { void connect(); }, []);
 
   useEffect(() => {
+    if (connection !== "online") return;
+    const controller = new AbortController();
+    request<Curriculum>("/api/curriculum", { signal: controller.signal })
+      .then(setCurriculum).catch(issue => { if (!controller.signal.aborted) report(issue); });
+    return () => controller.abort();
+  }, [connection]);
+
+  useEffect(() => {
     if (!selected) return;
     const controller = new AbortController();
     request<Session[]>("/api/datasets/" + selected + "/sessions", { signal: controller.signal })
@@ -337,6 +360,9 @@ export default function Home() {
         const [state, points] = await Promise.all([request<Run>(path), request<Metrics>(path + "/metrics")]);
         if (!live) return;
         setMetrics(points);
+        const snapshot = await request<Memory>(path + "/memory");
+        if (!live) return;
+        setMemory(snapshot);
         if (state.status === "completed") {
           const [output, finalPoints] = await Promise.all([
             request<Result>(path + "/result"), request<Metrics>(path + "/metrics"),
@@ -373,6 +399,11 @@ export default function Home() {
     setTutoring([]);
     setRuleText("");
     setRun(null);
+    setMemory(null);
+    setValidation(null);
+    setLockedSessions([]);
+    setCampusOverride(null);
+    setShiftOverrides({});
     setResult(null);
     setMetrics(null);
     setFrame(null);
@@ -415,13 +446,37 @@ export default function Home() {
     } finally { setPending(false); }
   }
 
+  async function createDemo(groups: string, period: string) {
+    setPending(true);
+    setError("");
+    try {
+      const query = new URLSearchParams({ groups, period });
+      const dataset = await request<Dataset>("/api/curriculum/demonstration?" + query, { method: "POST" });
+      choose(dataset.id);
+      setDatasets(items => [...items, dataset]);
+      setImportNotice("Demostración UPEC cargada. Revisa las asignaciones antes de generar.");
+    } catch (issue) { report(issue); }
+    finally { setPending(false); }
+  }
+
+  async function cancelOptimization() {
+    if (!activeId) return;
+    setCancelling(true);
+    try { await request("/api/optimizations/" + activeId + "/cancel", { method: "POST" }); }
+    catch (issue) { setCancelling(false); report(issue); }
+  }
+
   async function start(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (planDirty) { setError("Guarda las asignaciones de docentes y materias antes de generar el horario."); return; }
     setPending(true);
     setError("");
+    setValidation(null);
     try {
       const rules = ruleText.trim() ? JSON.parse(ruleText) : {};
+      if (campusOverride !== null) rules.campus_windows = campusWindows;
+      rules.group_windows = { ...rules.group_windows,
+        ...Object.fromEntries(Object.entries(shiftOverrides).map(([key, value]) => [key, splitWindows(value)])) };
       const configured = Object.fromEntries(
         Object.entries(availability).map(([teacher, windows]) =>
           [teacher, windows.map(window => API_DAYS[window.day] + " " + window.start + " - " + window.end)]),
@@ -438,12 +493,19 @@ export default function Home() {
       });
       rules.weekly_minutes = { ...rules.weekly_minutes, ...Object.fromEntries(weeklyMinutes) };
       rules.class_minutes = { ...rules.class_minutes, ...durations };
+      rules.locked_sessions = [...new Set([...(rules.locked_sessions ?? []), ...lockedSessions])];
       rules.tutoring = [...(rules.tutoring ?? []), ...tutoring.map(item => ({ session_id: item.session_id, teacher: item.teacher, room: item.room, slot: apiSlot(item) }))];
-      const state = await request<Run>("/api/optimizations", {
+      const options = {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ dataset_id: selected, parameters, rules }),
-      });
+      };
+      const diagnostics = await request<Validation>("/api/planning/validate", options);
+      setValidation(diagnostics);
+      if ((event.nativeEvent as SubmitEvent).submitter?.id === "validate-plan") return;
+      const state = await request<Run>("/api/optimizations", options);
       setResult(null);
+      setMemory(null);
+      setCancelling(false);
       setMetrics(null);
       setFrame(null);
       setPlaying(false);
@@ -454,7 +516,7 @@ export default function Home() {
   }
 
   useEffect(() => {
-    if (activeId) document.getElementById("modelo")?.scrollIntoView({ block: "start" });
+    if (activeId) document.getElementById("memoria")?.scrollIntoView({ block: "start" });
   }, [activeId]);
 
   const points = metrics?.history ?? [];
@@ -514,25 +576,33 @@ export default function Home() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / 8));
   const currentPage = Math.min(page, totalPages);
   const selectedDataset = datasets.find(dataset => dataset.id === selected);
+  const splitWindows = (text: string) => text.split("\n").map(line => line.trim()).filter(Boolean);
+  const campusWindows = campusOverride === null ? selectedDataset?.rules?.campus_windows : splitWindows(campusOverride);
   const cards = [
     { name: "Clases semanales", value: sessions.filter(row => row.kind !== "tutoring").length, icon: Layers3, color: "indigo" },
     { name: "Docentes", value: new Set(sessions.map(s => s.teacher)).size, icon: Users, color: "violet" },
-    { name: "Aulas", value: new Set(sessions.map(s => s.room)).size, icon: DoorOpen, color: "mint" },
+    { name: "Aulas", value: selectedDataset?.rooms?.length ?? new Set(sessions.map(s => s.room)).size, icon: DoorOpen, color: "mint" },
     { name: "Tutorías", value: sessions.filter(row => row.kind === "tutoring").length + tutoring.length, icon: CalendarDays, color: "peach" },
+    { name: "Semestres activos", value: new Set(classGroups.map(s => s.level)).size, icon: Layers3, color: "mint" },
+    { name: "Paralelos activos", value: classGroups.length, icon: Users, color: "mint" },
+    { name: "Asignaturas de la malla", value: curriculum?.subjects.length, icon: Database, color: "mint" },
+    { name: "Validación", value: validation ? validation.can_optimize ? "Revisada" : "Con errores" : "Pendiente", icon: CheckCircle2, color: "mint" },
   ];
 
   return <div className="workspace">
     <aside className="sidebar">
       <a href="#inicio" className="brand"><span className="brand-icon"><CalendarDays size={22} /></span><span>HorarioGen<small>Planificación · v0.1.4</small></span></a>
       <nav aria-label="Navegación principal">
-        <a href="#inicio"><LayoutDashboard size={18} /> Mi planificación</a>
+        <a href="#inicio"><LayoutDashboard size={18} /> Inicio</a>
+        <a href="#malla"><Database size={18} /> Malla curricular</a>
         <a href="#sesiones"><CalendarDays size={18} /> Horarios</a>
         <a href="#datos"><Database size={18} /> Datos académicos</a>
         <a href="#asignaciones"><Users size={18} /> Docentes y materias</a>
         <a href="#flujo-aulas"><DoorOpen size={18} /> Flujo de aulas</a>
         <a href="#reglas"><Settings2 size={18} /> Modelo y reglas</a>
         <a href="#optimizar"><Workflow size={18} /> Optimización</a>
-        {run && <a href="#modelo"><Activity size={18} /> Modelo visual</a>}
+        <a href="#memoria"><Activity size={18} /> Memoria de trabajo</a>
+        {run && <a href="#modelo"><Activity size={18} /> Evolución del modelo</a>}
       </nav>
       <div className="sidebar-status"><span data-online={connection === "online"} />{connection === "online" ? "Sistema conectado" : connection === "loading" ? "Conectando…" : "Servicio sin conexión"}</div>
     </aside>
@@ -541,18 +611,9 @@ export default function Home() {
       <main className="dashboard">
         <section className="hero">
           <div className="hero-copy">
-            <p className="hero-kicker"><CalendarDays size={15} /> PLANIFICACIÓN ACADÉMICA</p>
-            <h1>Una semana bien planificada.</h1>
-            <p>Clases, carga docente y tutorías en un solo horario. Planifica con las aulas 106 a 112 y verifica la disponibilidad de tu equipo.</p>
+            <h1>Planificación académica</h1>
+            <p>Organiza clases, tutorías y aulas. Revisa las restricciones antes de generar el horario.</p>
             <div className="hero-actions"><Button form="optimization-form" type="submit" disabled={busy || !sessions.length}><Play size={16} /> {busy ? "Procesando…" : "Generar horario"}</Button><a href="#sesiones">Ver sesiones <ArrowDown size={15} /></a></div>
-          </div>
-          <div className="hero-art" aria-hidden="true">
-            <div className="mini-calendar">
-              <div className="mini-title"><CalendarDays size={18} /><span></span><i></i><i></i></div>
-              <div className="mini-days"><span>LUN</span><span>MAR</span><span>MIÉ</span><span>JUE</span><span>VIE</span></div>
-              <div className="mini-grid">{Array.from({length:15}, (_, i) => <i key={i} data-cell={i} />)}</div>
-            </div>
-            <span className="art-check"><CheckCircle2 size={23} /></span>
           </div>
         </section>
         <nav className="workflow-nav" aria-label="Pasos de planificación">
@@ -565,8 +626,15 @@ export default function Home() {
         {connection === "offline" && <div className="notice" role="alert"><WifiOff size={20} /><div><strong>No se pudo conectar con el servicio</strong><p>Inicia HorarioGen con Iniciar-HorarioGen.cmd y vuelve a intentar.</p></div><Button variant="outline" onClick={() => void connect()}>Reintentar</Button></div>}
         {error && <p role="alert" className="notice">{error}</p>}
         <section className="stat-grid" aria-label="Resumen del dataset">
-          {cards.map(({name, value, icon: Icon, color}) => <div className="stat-card" key={name}><span className={"stat-icon " + color}><Icon size={20} /></span><div><p>{name}</p><strong>{sessions.length ? value : "—"}</strong></div></div>)}
+          {cards.map(({name, value, icon: Icon, color}) => <div className="stat-card" key={name}><span className={"stat-icon " + color}><Icon size={20} /></span><div><p>{name}</p><strong>{value ?? "—"}</strong></div></div>)}
         </section>
+        <AcademicReference curriculum={curriculum} offerings={sessions} disabled={busy} createDemo={(groups, period) => void createDemo(groups, period)} />
+        <WorkingMemoryPanel memory={memory} status={run?.status} labels={LABELS} cancelling={cancelling} cancel={() => void cancelOptimization()} />
+        {validation && <section className="notice" aria-label="Diagnóstico de planificación">
+          <div><strong>{validation.can_optimize ? "Sin impedimentos demostrados" : "La planificación tiene impedimentos"}</strong>
+            <ul>{[...validation.errors, ...validation.warnings].map((item, index) => <li key={index}>{item.message}</li>)}</ul>
+          </div>
+        </section>}
         <Card id="datos" className="product-card">
           <h2 className="mb-4 flex items-center gap-2 text-lg font-bold"><FileUp size={19} /> Importa tu planificación</h2>
           <p className="muted mb-4">Excel reúne sesiones, aulas, carga y disponibilidad. Con CSV puedes cargar sesiones y completar las reglas aquí.</p>
@@ -584,7 +652,7 @@ export default function Home() {
       {run && <Card id="modelo" className="product-card">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="flex items-center gap-2 text-xl font-bold"><Activity size={22} /> Modelo en acción</h2>
-          <span className="model-badge">{{queued:"En cola", running:"En vivo", completed:"Completado", failed:"Interrumpido"}[run.status]}</span>
+          <span className="model-badge">{{queued:"En cola", running:"En vivo", completed:"Completado", failed:"Interrumpido", cancelled:"Cancelado"}[run.status]}</span>
         </div>
         <p className="mt-2 muted">El algoritmo prioriza reducir los conflictos. Entre horarios con los mismos conflictos, busca la menor penalización.</p>
         {shownPoint ? <>
@@ -678,7 +746,7 @@ export default function Home() {
         {visibleTeachers.length > 0 && <ul className="teacher-legend" aria-label="Colores de los docentes">
           {visibleTeachers.map(teacher => <li key={teacher} className="teacher-label" style={teacherStyle(colors.get(teacher)!)}>{teacher}</li>)}
         </ul>}
-        {view !== "list" && <p className="muted mb-3"><span className="tutor-key">Tutoría</span> Los bloques con borde discontinuo son tutorías reservadas.</p>}
+        {view !== "list" && <p className="muted mb-3"><span className="tutor-key">Tutoría</span> Los bloques con borde discontinuo identifican tutorías.</p>}
         <div className="academic-filters">
           <label>Semestre<select className="field" aria-label="Semestre del horario" value={levelFilter} onChange={event => { setLevelFilter(event.target.value); setParallelFilter(event.target.value ? sessions.find(row => row.kind !== "tutoring" && row.level === event.target.value)?.section ?? "" : ""); setPage(1); }}>
             <option value="">Todos los semestres</option>{Array.from({length:9},(_,index) => "Semestre " + (index+1)).map(level => <option key={level}>{level}</option>)}
@@ -687,9 +755,9 @@ export default function Home() {
             <option value="">Todos los paralelos</option><option value="A">Paralelo A</option><option value="B">Paralelo B</option>
           </select></label>
           <label className="tutorial-toggle"><input type="checkbox" checked={showTutoring} onChange={event => setShowTutoring(event.target.checked)} /> Incluir tutorías del paralelo</label>
-          <div className="shift-label"><strong>{levelFilter ? levelFilter + (Number(levelFilter.match(/\d+/)?.[0]) % 2 ? " · Mañana" : " · Tarde") : "Jornadas por semestre"}</strong><span>{levelFilter ? Number(levelFilter.match(/\d+/)?.[0]) % 2 ? "07:00–13:00" : "14:00–20:00" : "Impares: mañana · Pares: tarde"}</span></div>
+          <div className="shift-label"><strong>{levelFilter || "Jornadas por paralelo"}</strong><span>{selectedDataset?.rules?.campus_windows ? "Configuradas en este plan" : "Escenario original · Impares: mañana · Pares: tarde"}</span></div>
         </div>
-        {levelFilter && <p className="muted mb-3">{new Set(current.filter(row => row.kind !== "tutoring" && row.level === levelFilter && (!parallelFilter || row.section === parallelFilter)).map(row => row.course)).size} materias en la selección · Ambos paralelos comparten la jornada de su semestre. Receso: 13:00–14:00.</p>}
+        {levelFilter && <p className="muted mb-3">{new Set(current.filter(row => row.kind !== "tutoring" && row.level === levelFilter && (!parallelFilter || row.section === parallelFilter)).map(row => row.course)).size} materias en la selección</p>}
         {!levelFilter && <p className="muted mb-3">Vista general en agenda. Selecciona un semestre y paralelo para consultar su cuadrícula semanal.</p>}
         <div className="table-tools">
           <label className="search-box"><Search size={18} /><input aria-label="Buscar sesiones" placeholder="Buscar asignatura, docente, aula o grupo…" value={query} onChange={e => { setQuery(e.target.value); setPage(1); }} /></label>
@@ -703,10 +771,10 @@ export default function Home() {
             <option value="">Todos los días</option>{DAYS.map((day, index) => <option key={day} value={index}>{day}</option>)}
           </select>
         </div>
-        {filtered.length === 0 ? <div className="empty-state"><CalendarDays size={26} /><strong>{connection === "loading" ? "Cargando sesiones…" : sessions.length ? "Sin coincidencias" : "Aún no hay sesiones"}</strong><p>{sessions.length ? "Prueba otra búsqueda o cambia el filtro de día." : "Selecciona un conjunto de datos o importa un CSV."}</p></div> : view !== "list" ? <Schedule rows={filtered} colors={colors} /> :
+        {filtered.length === 0 ? <div className="empty-state"><CalendarDays size={26} /><strong>{connection === "loading" ? "Cargando sesiones…" : sessions.length ? "Sin coincidencias" : "Aún no hay sesiones"}</strong><p>{sessions.length ? "Prueba otra búsqueda o cambia el filtro de día." : "Selecciona un conjunto de datos o importa un CSV."}</p></div> : view !== "list" ? <Schedule rows={filtered} colors={colors} campus={campusWindows} /> :
           <div className="table-frame">
             <div className="overflow-auto"><table className="w-full min-w-[740px] text-sm">
-              <thead><tr>{["Asignatura", "Docente", "Grupo", "Día y hora", "Aula", "Duración"].map(label => <th scope="col" className="table-cell" key={label}>{label}</th>)}</tr></thead>
+              <thead><tr>{["Asignatura", "Docente", "Grupo", "Día y hora", "Aula", "Duración", "Fijar"].map(label => <th scope="col" className="table-cell" key={label}>{label}</th>)}</tr></thead>
               <tbody>{filtered.slice((currentPage - 1) * 8, currentPage * 8).map(s => <tr key={s.id}>
                 <td className="table-cell"><strong>{s.course}</strong><small>Sesión #{s.id}</small></td>
                 <td className="table-cell"><span className="teacher-label" style={teacherStyle(colors.get(s.teacher) ?? "#593dc5")}>{s.teacher}</span></td>
@@ -724,6 +792,10 @@ export default function Home() {
                   })}>
                   {[...new Set([60, 120, 180, 240, s.end - s.start])].sort((a, b) => a - b).map(minutes => <option value={minutes} key={minutes}>{hours(minutes)}</option>)}
                 </select>}</td>
+                <td className="table-cell"><input type="checkbox" checked={lockedSessions.includes(s.id)} disabled={busy}
+                  aria-label={"Fijar franja y aula de la sesión " + s.id}
+                  onChange={event => setLockedSessions(previous => event.target.checked
+                    ? [...previous, s.id] : previous.filter(id => id !== s.id))} /></td>
               </tr>)}</tbody>
             </table></div>
             <div className="pagination"><span>{(currentPage - 1) * 8 + 1}–{Math.min(currentPage * 8, filtered.length)} de {filtered.length} sesiones</span><div>
@@ -733,7 +805,7 @@ export default function Home() {
             </div></div>
           </div>}
       </Card>
-      <RoomFlow rows={result?.optimized ?? sessions} rooms={rooms} colors={colors} generated={Boolean(result)} />
+      <RoomFlow rows={result?.optimized ?? sessions} rooms={rooms} colors={colors} generated={Boolean(result)} campus={campusWindows} />
       <Card id="reglas" className="product-card">
         <h2 className="text-xl font-bold">Modelo y reglas</h2>
         <p className="mt-2 muted">El modelo representa cada sesión con una franja y un aula. Conserva su materia, docente, grupo y duración.</p>
@@ -752,7 +824,7 @@ export default function Home() {
         </details>
         <div className="rule-grid">
           <div><h3>Reglas obligatorias</h3><ul>
-            <li>Semestres 1, 3, 5, 7 y 9: mañana (07:00–13:00). Semestres 2, 4, 6 y 8: tarde (14:00–20:00), en ambos paralelos. Las tutorías de materia respetan esta jornada y reservan también al paralelo.</li>
+            <li>{campusWindows ? "Las clases y tutorías deben caber en las franjas del campus y del paralelo." : "El escenario original usa mañana para semestres impares y tarde para pares."}</li>
             <li>Las clases se imparten en el aula asignada al semestre y paralelo.</li>
             <li>Una sesión debe estar dentro de la disponibilidad registrada del docente.</li>
             <li>Un docente, aula o grupo no puede estar en dos sesiones simultáneas.</li>
@@ -766,6 +838,21 @@ export default function Home() {
             <li>Respetar las preferencias horarias registradas.</li>
           </ul><p className="mt-3 muted">El algoritmo minimiza primero los incumplimientos obligatorios y después la penalización de las preferencias.</p></div>
         </div>
+        <details className="advanced mb-5">
+          <summary>Calendario académico y jornadas por paralelo</summary>
+          <p className="muted my-2">Introduce una franja por línea, por ejemplo Monday 07:00 - 13:00. Usa Saturday para habilitar el sábado. Deja fuera los intervalos reservados, incluido el almuerzo.</p>
+          <label className="label">Franjas del campus<textarea className="field" rows={4} disabled={busy}
+            value={campusOverride ?? selectedDataset?.rules?.campus_windows?.join("\n") ?? ""}
+            onChange={e => setCampusOverride(e.target.value)} /></label>
+          <Button className="my-2" type="button" variant="outline" disabled={busy} onClick={() => setCampusOverride(null)}>Restaurar calendario del conjunto</Button>
+          <div className="rule-grid">{[...new Map(sessions.filter(s => s.kind !== "tutoring")
+            .map(s => [s.group_key ?? JSON.stringify([s.program,s.major,s.level,s.section]), s])).entries()].map(([key, row]) =>
+            <label className="label" key={key}>{row.level} · Paralelo {row.section}
+              <textarea className="field" rows={2} disabled={busy}
+                value={shiftOverrides[key] ?? selectedDataset?.rules?.group_windows?.[key]?.join("\n") ?? ""}
+                onChange={e => setShiftOverrides(previous => ({ ...previous, [key]: e.target.value }))} />
+            </label>)}</div>
+        </details>
         <AvailabilityEditor teachers={teachers} colors={colors} value={availability} onChange={setAvailability} disabled={busy} />
         <div className="availability-editor mt-4">
           <h3 className="font-bold">Carga lectiva semanal</h3>
@@ -792,6 +879,7 @@ export default function Home() {
         <Card id="optimizar" className="product-card">
           <h2 className="mb-4 flex items-center gap-2 text-lg font-bold"><Settings2 size={19} /> Optimización</h2>
           <form id="optimization-form" onSubmit={start} className="space-y-4">
+            <Button id="validate-plan" type="submit" variant="outline" disabled={busy || !sessions.length}>Validar planificación</Button>
             <p className="muted">El algoritmo evoluciona horarios candidatos y conserva el mejor. Puedes aumentar las generaciones para ampliar la búsqueda.</p>
             <fieldset disabled={busy} className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
               {FIELDS.slice(0, 3).map(([key, title, min, max, step]) => <label className="label" key={key}>{title}
@@ -819,7 +907,7 @@ export default function Home() {
             </details>
             <Button disabled={busy || !selected || !sessions.length} type="submit"><Play size={16} /> {busy ? "Buscando un horario…" : "Generar horario"}</Button>
             {run && <p aria-live="polite" className="run-status">
-              {{ queued: "En cola", running: "En ejecución", completed: "Completada", failed: "Fallida" }[run.status]}
+              {{ queued: "En cola", running: "En ejecución", completed: "Completada", failed: "Fallida", cancelled: "Cancelada" }[run.status]}
               {run.progress && ["running", "completed"].includes(run.status) && " · Generación " + run.progress.generation + " · " + run.progress.elapsed + " s"}
             </p>}
           </form>

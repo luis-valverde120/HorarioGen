@@ -85,6 +85,26 @@ class Rules:
     group_rooms: dict = field(default_factory=dict)
     enforce_hours: bool = True
     session_days: dict = field(default_factory=dict)
+    campus_windows: tuple | None = None
+    group_windows: dict = field(default_factory=dict)
+    locked_sessions: frozenset = field(default_factory=frozenset)
+    soft_weights: dict = field(default_factory=dict)
+    movable_tutoring: frozenset = field(default_factory=frozenset)
+
+    def campus_allows(self, slot):
+        if self.campus_windows is None:
+            return not self.enforce_hours or within_campus_hours(slot)
+        return any(window.day == slot.day and window.start <= slot.start <= slot.end <= window.end
+                   for window in self.campus_windows)
+
+    def group_allows(self, session, slot):
+        if session.group_key in self.group_windows:
+            return any(window.day == slot.day and window.start <= slot.start <= slot.end <= window.end
+                       for window in self.group_windows[session.group_key])
+        return self.campus_windows is not None or not self.enforce_hours or within_semester_shift(session, slot)
+
+    def fixed(self, session):
+        return session.id in self.locked_sessions or session.tutoring and session.id not in self.movable_tutoring
 
     @classmethod
     def from_payload(cls, payload):
@@ -94,7 +114,10 @@ class Rules:
                 for name, slots in payload.get(field, {}).items()
             }
         return cls(payload.get("capacities", {}), payload.get("enrollments", {}),
-                   windows("availability"), windows("preferences"), {teacher: value for teacher, value in payload.get("weekly_minutes", {}).items() if value is not None}, tuple(payload.get("available_rooms", ())), payload.get("group_rooms", {}), payload.get("enforce_hours", True), {int(k): tuple(v) for k, v in payload.get("session_days", {}).items()})
+                   windows("availability"), windows("preferences"), {teacher: value for teacher, value in payload.get("weekly_minutes", {}).items() if value is not None}, tuple(payload.get("available_rooms", ())), payload.get("group_rooms", {}), payload.get("enforce_hours", True), {int(k): tuple(v) for k, v in payload.get("session_days", {}).items()},
+                   tuple(map(parse_slot, payload["campus_windows"])) if payload.get("campus_windows") is not None else None,
+                   windows("group_windows"), frozenset(payload.get("locked_sessions", ())),
+                   payload.get("soft_weights", {}), frozenset(payload.get("movable_tutoring", ())))
 
 
 def load_csv(raw: bytes, legacy_hours=False):

@@ -3,8 +3,10 @@ import time
 from collections import defaultdict
 from dataclasses import dataclass
 
-from .domain import Gene, Slot, within_campus_hours, within_semester_shift, occupies_group
+from .domain import Gene, Slot, occupies_group, session_payload
 from .evaluation import contained, evaluate
+from .feasibility import planning_windows
+from .working_memory import OptimizationCancelled
 
 
 @dataclass(frozen=True)
@@ -39,18 +41,20 @@ def exchange(genes, index, peers, rng):
     genes[index], genes[other] = genes[other], genes[index]
 
 
-def repair_conflicts(sessions, initial, slots, rooms, rules, rng, deadline):
+def repair_conflicts(sessions, initial, slots, rooms, rules, rng, deadline, memory=None):
     """Move conflict participants through feasible windows, including plateau moves."""
     genes = tuple(initial)
     best = evaluate(sessions, genes, rules).score, genes
     tabu = []
     by_id = {s.id: i for i, s in enumerate(sessions)}
     for _ in range(180):
+        if memory and memory.cancelled.is_set():
+            raise OptimizationCancelled
         if time.monotonic() >= deadline or best[0][0] == 0:
             break
         current = evaluate(sessions, genes, rules, details=True)
         targets = list({by_id[sid] for conflict in current.conflicts for sid in conflict['sessions']
-                        if sid in by_id and not sessions[by_id[sid]].tutoring})
+                        if sid in by_id and not rules.fixed(sessions[by_id[sid]])})
         if not targets:
             break
         index = rng.choice(targets)
@@ -59,7 +63,7 @@ def repair_conflicts(sessions, initial, slots, rooms, rules, rng, deadline):
         candidate_rooms = [rules.group_rooms[session.group_key]] if session.group_key in rules.group_rooms else rooms
         choices = []
         for slot in slots[session.original.slot.duration]:
-            if rules.enforce_hours and not within_semester_shift(session, slot): continue
+            if not rules.group_allows(session, slot): continue
             if session.id in rules.session_days and slot.day not in rules.session_days[session.id]: continue
             if windows is not None and not contained(slot, windows): continue
             for room in candidate_rooms:
@@ -74,11 +78,13 @@ def repair_conflicts(sessions, initial, slots, rooms, rules, rng, deadline):
         if chosen[0][0] > current.score[0] + 1: continue
         tabu.append((index, genes[index])); tabu = tabu[-40:]
         genes = chosen[1]
+        if memory:
+            memory.repair(session.id, current.score, chosen[0])
         if chosen[0] < best[0]: best = chosen
     return best
 
 
-def greedy_seed(sessions, slots, rooms, rules, deadline):
+def greedy_seed(sessions, slots, rooms, rules, deadline, placements=None):
     """Keep existing assignments when possible and relocate conflicting sessions."""
     teachers, groups, occupancy = defaultdict(list), defaultdict(list), defaultdict(list)
     genes = []
@@ -86,11 +92,11 @@ def greedy_seed(sessions, slots, rooms, rules, deadline):
     def overlaps(slot, assignments):
         return sum(other.start < slot.end and slot.start < other.end for other in assignments)
 
-    for session in sorted(sessions, key=lambda item: (
-        not item.tutoring,
-        rules.enforce_hours and not within_semester_shift(item, item.original.slot),
-        -item.original.slot.duration, item.id,
-    )):
+    def priority(item):
+        return (not rules.fixed(item), len(placements.get(item.id, ())) if placements is not None else
+                int(not rules.group_allows(item, item.original.slot)), -item.original.slot.duration, item.id)
+
+    for session in sorted(sessions, key=priority):
         if time.monotonic() >= deadline:
             return None
         original = session.original
@@ -99,9 +105,9 @@ def greedy_seed(sessions, slots, rooms, rules, deadline):
         preference = rules.preferences.get(session.teacher)
 
         def slot_cost(slot):
-            hard = int(rules.enforce_hours and not within_campus_hours(slot))
+            hard = int(not rules.campus_allows(slot))
             hard += int(session.id in rules.session_days and slot.day not in rules.session_days[session.id])
-            hard += int(rules.enforce_hours and not within_semester_shift(session, slot))
+            hard += int(not rules.group_allows(session, slot))
             hard += overlaps(slot, teachers[session.teacher, slot.day])
             if occupies_group(session):
                 hard += overlaps(slot, groups[session.group, slot.day])
@@ -118,13 +124,14 @@ def greedy_seed(sessions, slots, rooms, rules, deadline):
             return hard, int(room != original.room)
 
         def candidates():
-            for slot in slots[original.slot.duration]:
+            choices = placements.get(session.id) if placements else None
+            for slot in choices or slots[original.slot.duration]:
                 slot_hard, slot_soft = slot_cost(slot)
                 for room in [(rules.group_rooms or {})[session.group_key]] if session.group_key in (rules.group_rooms or {}) else rooms:
                     room_hard, room_soft = room_cost(slot, room)
                     yield (slot_hard + room_hard, slot_soft + room_soft), Gene(slot, room)
 
-        if session.tutoring or slot_cost(original.slot) == room_cost(original.slot, original.room) == (0, 0):
+        if rules.fixed(session) or slot_cost(original.slot) == room_cost(original.slot, original.room) == (0, 0):
             gene = original
         else:
             _, gene = min(candidates(), key=lambda candidate: candidate[0])
@@ -134,41 +141,72 @@ def greedy_seed(sessions, slots, rooms, rules, deadline):
         if occupies_group(session):
             groups[session.group, slot.day].append(slot)
         occupancy[gene.room, slot.day].append(slot)
-    return tuple(gene for _, gene in sorted(genes))
+    by_id = dict(genes)
+    return tuple(by_id[session.id] for session in sessions)
 
 
-def optimize(sessions, rules, config=Config(), progress=lambda point: None):
+def optimize(sessions, rules, config=Config(), progress=lambda point: None, *, memory=None):
     started = time.monotonic()
     deadline = started + config.seconds
     rng = random.Random(config.seed)
+
+    def check_cancelled():
+        if memory and memory.cancelled.is_set():
+            raise OptimizationCancelled
+
+    check_cancelled()
     original = tuple(s.original for s in sessions)
     rooms = rules.available_rooms or tuple(sorted({gene.room for gene in original}))
     slots, peers = {}, {}
     for index, gene in enumerate(original):
         slots.setdefault(gene.slot.duration, set()).add(gene.slot)
-        if not sessions[index].tutoring:
+        if not rules.fixed(sessions[index]):
             peers.setdefault(gene.slot.duration, []).append(index)
     for duration, options in slots.items():
-        if rules.enforce_hours:
+        if rules.campus_windows is not None:
+            for window in rules.campus_windows:
+                for start in range(window.start, window.end - duration + 1, 60):
+                    options.add(Slot(window.day, start, start + duration))
+        elif rules.enforce_hours:
             for day in range(5):
                 for beginning, closing in ((420, 780), (840, 1200)):
                     for start in range(beginning, closing - duration + 1, 60):
                         options.add(Slot(day, start, start + duration))
-        for windows in rules.availability.values():
+        for windows in (*rules.availability.values(), *rules.group_windows.values()):
             for window in windows:
                 for start in range(window.start, window.end - duration + 1, 60):
                     options.add(Slot(window.day, start, start + duration))
-        valid = {slot for slot in options if not rules.enforce_hours or within_campus_hours(slot)}
+        valid = {slot for slot in options if rules.campus_allows(slot)}
         # Keep the original as fallback if no valid block fits the duration.
         slots[duration] = tuple(sorted(valid or options))
     mutable = [index for indices in peers.values() for index in indices]
+    placements = None
+    if rules.campus_windows is not None or rules.group_windows:
+        placements = {}
+        for index in mutable:
+            check_cancelled()
+            session = sessions[index]
+            duration = session.original.slot.duration
+            windows = planning_windows(session, rules)
+            from_windows = {Slot(w.day, start, start + duration) for w in windows
+                            for start in range(w.start, w.end - duration + 1, 60)}
+            from_windows.update(slot for slot in slots[duration] if contained(slot, windows))
+            placements[session.id] = tuple(sorted(from_windows))
+            slots[duration] = tuple(sorted(set(slots[duration]) | from_windows))
 
     def rank(genes):
         genes = tuple(Gene(gene.slot, (rules.group_rooms or {}).get(session.group_key, gene.room))
-                      if not session.tutoring else gene for session, gene in zip(sessions, genes, strict=True))
+                      if not rules.fixed(session) else session.original for session, gene in zip(sessions, genes, strict=True))
         return evaluate(sessions, genes, rules).score, genes
 
     def mutate(genes, index):
+        if placements is not None:
+            session = sessions[index]
+            options = placements[session.id]
+            if options:
+                fixed_room = rules.group_rooms.get(session.group_key)
+                genes[index] = Gene(rng.choice(options), fixed_room or rng.choice(rooms))
+            return
         if rng.getrandbits(1):
             reassign(genes, index, slots, rooms, rng)
         else:
@@ -179,9 +217,14 @@ def optimize(sessions, rules, config=Config(), progress=lambda point: None):
     history = []
 
     def record(generation):
+        check_cancelled()
         point = {"generation": generation, "hard": best[0][0], "soft": best[0][1],
                  "elapsed": round(time.monotonic() - started, 4)}
         history.append(point)
+        if memory:
+            assessment = evaluate(sessions, best[1], rules, details=True, include_resources=True)
+            preview = [session_payload(s, g) for s, g in zip(sessions[:20], best[1][:20])]
+            memory.record(population, best, assessment, point, preview)
         progress(point)
 
     population = [best]
@@ -192,7 +235,7 @@ def optimize(sessions, rules, config=Config(), progress=lambda point: None):
         record(0)
         return original, baseline, baseline, history, "optimal_score" if best[0] == (0, 0) else "generations"
     if best[0][0]:
-        seed = greedy_seed(sessions, slots, rooms, rules, deadline)
+        seed = greedy_seed(sessions, slots, rooms, rules, deadline, placements)
         if seed is not None:
             candidate = rank(seed)
             population.append(candidate)
@@ -200,11 +243,12 @@ def optimize(sessions, rules, config=Config(), progress=lambda point: None):
                 best = candidate
         if best[0][0] and time.monotonic() < deadline:
             repaired = repair_conflicts(sessions, best[1], slots, rooms, rules, rng,
-                                        min(deadline, time.monotonic() + config.seconds * 0.45))
+                                        min(deadline, time.monotonic() + config.seconds * 0.45), memory)
             if repaired[0] < best[0]:
                 best = repaired
                 population.append(repaired)
     for index in range(config.population - len(population)):
+        check_cancelled()
         if best[0] == (0, 0) or time.monotonic() >= deadline:
             break
         genes = list(original)
@@ -223,6 +267,7 @@ def optimize(sessions, rules, config=Config(), progress=lambda point: None):
         population.sort(key=lambda candidate: candidate[0])
         next_population = population[:config.elite]
         while len(next_population) < config.population and time.monotonic() < deadline:
+            check_cancelled()
             first = tournament(population, config.tournament, rng)
             second = tournament(population, config.tournament, rng)
             genes = list(crossover(first, second, rng))

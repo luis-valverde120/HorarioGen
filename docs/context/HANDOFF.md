@@ -2,27 +2,17 @@
 
 ## Current objective
 
-Prepare the working HorarioGen repository for continued, context-aware development.
+Evolve the original HorarioGen application for the supplied UPEC Computing planning scenario.
 
-## Completed
+## Implemented
 
-- Copied the functional v0.1.4 application into this repository, excluding generated dependencies/build output and runtime storage.
-- Preserved existing `.agents/` skills and `skills-lock.json`; extended `.gitignore` for environment secrets and generated artifacts.
-- Translated the main README to English while keeping the product UI in Spanish.
-- Added project context documents and refreshed the context-management and token-efficiency skills.
-- Initialized local Git on `main` and configured the `origin` URL supplied by the user. No commit or push was made.
-
-## Decisions and constraints
-
-- Preserve the v0.1.4 functionality; this repository setup task does not change business logic.
-- Treat previous test/build results in `STATE.md` as historical until re-run from this checkout.
-- Read `AGENTS.md`, `STATE.md`, and this handoff at the start of future sessions. Consult other context files as task scope requires.
-- Use English for code, documentation, and authorized Conventional Commits; keep app UI Spanish.
+- Added the 50-subject reference catalog and source fingerprint. Synthetic demonstrations cover one or two parallel groups per semester with 16 teachers and shared rooms 206–212.
+- Added separate class and tutorial blocks, custom campus and group windows, preflight diagnostics, and locked assignments. The legacy dataset remains available.
+- Integrated per-run working memory with the existing search and HTTP API. Added bounded events, observed conflicts, cancellation, and a preview of the best candidate.
+- Added Spanish curriculum and working memory views, institutional design tokens, and adaptive timetable and room occupancy views. See `DESIGN.md`, `docs/SCHEDULING_MODEL.md`, and `docs/WORKING_MEMORY.md`.
 
 ## Verification and next action
 
-- Verified branch `main`, the `origin` URL, and an uncommitted clean-start working tree (no commits or pushes).
-- Compared 38 functional source files against the v0.1.4 delivery using SHA-256; no mismatches. Generated dependencies/build output/runtime storage are excluded.
-- Confirmed all six context documents exist; HANDOFF is below 500 words and STATE below 1,000 words.
-- Product tests were not run because this task changed setup and documentation only. Historical v0.1.4 test/build results remain recorded in STATE.
-- Next: select the first focused product change and run checks relevant to that change.
+- Backend suite and frontend production build passed during development. Browser verification loaded the two-parallel demo and showed a completed run with genuine events and zero hard violations. See STATE for the final verification record.
+- Resolve the Titulación discrepancy with the applicable academic period and obtain verified institutional resources. Administrative curriculum version editing and individual group activation remain open.
+- No release was declared. The feature changes are in the working tree.

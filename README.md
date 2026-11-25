@@ -14,6 +14,10 @@ For manual development, install `backend/requirements-dev.txt` in a Python virtu
 
 ## Demonstration scenario
 
+Open **Malla curricular** to load the UPEC reference demonstration for an academic period with one or two groups per semester. The demonstration uses classrooms 206–212 and 16 synthetic teachers. Curriculum hours are source totals and appear separately from planned weekly hours. Use **Memoria de trabajo** to see the optimizer's recorded state and events.
+
+See the [scheduling model](docs/SCHEDULING_MODEL.md), [working memory guide](docs/WORKING_MEMORY.md), and [design system](DESIGN.md) for implementation details.
+
 The bundled example has ten fictional teachers, 101 class blocks, and 18 linked tutoring activities. It covers semesters 1–9 with sections A and B: five distinct subjects in each A section and six in each B section. Blocks range from one to four hours, with two-hour blocks most common. Example classrooms are 106–112. Example weekly teacher loads, including tutoring, range from 18 to 26 hours.
 
 Odd semesters (1, 3, 5, 7, 9) use the morning shift, 07:00–13:00. Even semesters (2, 4, 6, 8) use the afternoon shift, 14:00–20:00. Both sections follow their semester's shift. Five or six subjects is a property of the example, not an import restriction.

@@ -8,20 +8,25 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
+from threading import Lock
 from uuid import UUID, uuid4
 from typing import Literal
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel, Field, NonNegativeInt, PositiveInt, model_validator
 
-from .domain import HEADERS, Gene, Rules, Session, Slot, load_csv, parse_slot, session_payload
+from .domain import HEADERS, Gene, Rules, Session, Slot, load_csv, occupies_group, parse_slot, session_payload
 from .genetic import Config, optimize
-from .imports import ROOMS, read_import
+from .imports import ROOMS, UPEC_ROOMS, read_import
+from .reference import demonstration
+from .feasibility import validate_feasibility
 from .workbook import template_workbook
 from .storage import FileRepository, Repository
 from .teaching import build_plan
+from .working_memory import OptimizationCancelled, WorkingMemory
+from .evaluation import evaluate
 
 PROJECT = Path(__file__).resolve().parents[2]
 BUNDLED = PROJECT / "data" / "horario_semanal.csv"
@@ -61,10 +66,16 @@ class RuleInput(BaseModel):
     preferences: dict[str, list[str]] = Field(default_factory=dict)
     weekly_minutes: dict[str, NonNegativeInt | None] = Field(default_factory=dict)
     class_minutes: dict[PositiveInt, int] = Field(default_factory=dict)
-    session_days: dict[PositiveInt, list[Literal[0, 1, 2, 3, 4]]] = Field(default_factory=dict)
+    session_days: dict[PositiveInt, list[Literal[0, 1, 2, 3, 4, 5]]] = Field(default_factory=dict)
     tutoring: list[TutoringInput] = Field(default_factory=list)
     group_rooms: dict[str, str] = Field(default_factory=dict)
     available_rooms: list[str] = Field(default_factory=lambda: list(ROOMS))
+    campus_windows: list[str] | None = None
+    group_windows: dict[str, list[str]] = Field(default_factory=dict)
+    locked_sessions: list[PositiveInt] = Field(default_factory=list)
+    movable_tutoring: list[PositiveInt] = Field(default_factory=list)
+    soft_weights: dict[Literal["rescheduled", "room_changes", "gaps", "teacher_gaps",
+                               "preferences", "course_distribution"], NonNegativeInt] = Field(default_factory=dict)
 
 
 class OptimizationInput(BaseModel):
@@ -79,7 +90,9 @@ class TeachingAssignment(BaseModel):
     teacher: str = Field(min_length=1, max_length=180)
     weekly_hours: int = Field(ge=1, le=30)
     block_hours: int = Field(ge=1, le=4)
-    days: list[Literal[0, 1, 2, 3, 4]] = Field(min_length=1, max_length=5)
+    days: list[Literal[0, 1, 2, 3, 4, 5]] = Field(min_length=1, max_length=6)
+    class_blocks: list[Literal[1, 2, 3, 4]] | None = Field(default=None, max_length=30)
+    tutorial_blocks: list[Literal[1, 2, 3, 4]] | None = Field(default=None, max_length=30)
 
 
 class TeachingPlanInput(BaseModel):
@@ -87,8 +100,28 @@ class TeachingPlanInput(BaseModel):
     use_assigned_load: bool = True
 
 
+class MemorySnapshot(BaseModel):
+    run_id: str
+    scenario_id: str
+    status: str
+    generation: int | None = None
+    maximum_generations: int = 0
+    seed: int | None = None
+    population_size: int = 0
+    best: dict | None = None
+    facts: dict = Field(default_factory=dict)
+    constraints: list[str] = Field(default_factory=list)
+    conflicts: list[dict] = Field(default_factory=list)
+    conflict_total: int = 0
+    repairs: int = 0
+    preview: list[dict] = Field(default_factory=list)
+    events: list[dict] = Field(default_factory=list)
+
+
 def create_app(repository: Repository | None = None):
-    def register(repo, name, raw, legacy, identifier=None, preset=None):
+    active_memory: dict[str, WorkingMemory] = {}
+    memory_lock = Lock()
+    def register(repo, name, raw, legacy, identifier=None, preset=None, academic_context=None):
         normalized, sessions, imported, warnings = read_import(raw, name, legacy)
         rules = {**imported, **(preset or {})}
         # Apply the same validation to workbook metadata and API-supplied rules.
@@ -102,6 +135,8 @@ def create_app(repository: Repository | None = None):
                       rules=validated.model_dump(), warnings=warnings if not preset else [],
                       rooms=validated.available_rooms, teachers=len(teachers),
                       classes=sum(not s.tutoring for s in sessions), tutoring=sum(s.tutoring for s in sessions))
+        if academic_context is not None:
+            record["academic_context"] = academic_context
         repo.save_original(record["id"], normalized)
         repo.save_source(record["id"], raw)
         repo.put("datasets", record)
@@ -147,6 +182,19 @@ def create_app(repository: Repository | None = None):
     def health():
         return {"status": "ok"}
 
+    @app.get("/api/curriculum")
+    def curriculum():
+        return json.loads((PROJECT / "data" / "upec_computacion.json").read_text(encoding="utf-8"))
+
+    @app.post("/api/curriculum/demonstration", status_code=201)
+    def curriculum_demo(groups: Literal["1", "2"] = "1",
+                        period: str = Query("Demostración", min_length=1, max_length=80)):
+        count = int(groups)
+        catalog = curriculum()
+        raw, preset = demonstration(catalog, count)
+        return register(repo(), f"Demostración UPEC · {period} · {count} por semestre.csv", raw, False, preset=preset,
+                        academic_context={"period": period, "curriculum_id": catalog["id"], "synthetic": True})
+
     @app.post("/api/datasets/import", status_code=201)
     def import_dataset(file: UploadFile = File(...), legacy_hours: bool = Form(False)):
         raw = file.file.read(MAX_BYTES + 1)
@@ -181,16 +229,23 @@ def create_app(repository: Repository | None = None):
         dataset = get('datasets', identifier)
         payload = dict(dataset.get('rules', {}))
         try:
-            planned, days, source_ids = build_plan(sessions_for(dataset), request.assignments, Rules.from_payload(payload))
+            previous = sessions_for(dataset)
+            planned, days, source_ids = build_plan(previous, request.assignments, Rules.from_payload(payload))
+            previous_tutoring = {s.id for s in previous if s.tutoring}
+            old_movable = set(payload.get("movable_tutoring", ()))
+            payload["movable_tutoring"] = [s.id for s in planned if s.tutoring and
+                                           (source_ids[s.id] not in previous_tutoring or source_ids[s.id] in old_movable)]
             payload['session_days'] = days
             payload['class_minutes'] = {}
+            payload["locked_sessions"] = []
             payload['tutoring'] = []
             payload['enrollments'] = {new: payload.get('enrollments', {}).get(str(old), payload.get('enrollments', {}).get(old))
                                      for new, old in source_ids.items()
                                      if str(old) in payload.get('enrollments', {}) or old in payload.get('enrollments', {})}
             teachers = {s.teacher for s in planned}
             groups = {s.group_key for s in planned if not s.tutoring}
-            payload['group_rooms'] = {key: room for key, room in payload.get('group_rooms', {}).items() if key in groups}
+            for field in ("group_rooms", "group_windows"):
+                payload[field] = {key: value for key, value in payload.get(field, {}).items() if key in groups}
             for field in ('availability', 'preferences', 'weekly_minutes'):
                 payload[field] = {teacher: value for teacher, value in payload.get(field, {}).items() if teacher in teachers}
             if request.use_assigned_load:
@@ -202,14 +257,15 @@ def create_app(repository: Repository | None = None):
                 writer.writerow([s.original.slot.label, s.level, s.section, s.major, s.course,
                                  s.teacher, s.original.room, s.program, 'Tutoria' if s.tutoring else 'Clase'])
             raw = output.getvalue().encode('utf-8-sig')
-            record = register(repo(), 'Plan docente v0.1.4.csv', raw, False, preset=payload)
+            record = register(repo(), 'Plan docente v0.1.4.csv', raw, False, preset=payload,
+                              academic_context=dataset.get("academic_context"))
             record['warnings'] = ['Plan guardado como un conjunto nuevo. Genera el horario para comprobar los cruces, la disponibilidad y la carga.']
             repo().put('datasets', record)
             return record
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
 
-    def execute(run, sessions, rules, config):
+    def execute(run, sessions, rules, config, memory):
         def save(**fields):
             run.update(fields)
             repo().put("runs", run)
@@ -221,21 +277,48 @@ def create_app(repository: Repository | None = None):
             save(progress=point, history=progress_history)
 
         try:
+            if memory.cancelled.is_set():
+                raise OptimizationCancelled
+            memory.update(status="running")
+            memory.emit("RUN_STARTED")
+            assessment = evaluate(sessions, [s.original for s in sessions], rules)
+            memory.update(
+                facts={"sessions": len(sessions), "teachers": sorted({s.teacher for s in sessions}),
+                       "rooms": list(rules.available_rooms),
+                       "groups": sorted({s.group_key for s in sessions if not s.tutoring}),
+                       "tutorials": sum(s.tutoring for s in sessions)},
+                constraints=list(assessment.hard),
+            )
+            memory.emit("FACTS_LOADED")
             save(status="running")
             genes, baseline, result, history, reason = optimize(
-                sessions, rules, config, progress=publish,
+                sessions, rules, config, progress=publish, memory=memory,
             )
             rows = [session_payload(s, g) for s, g in zip(sessions, genes, strict=True)]
-            save(status="completed", reason=reason, history=history, result={
-                "original": [session_payload(s, s.original) for s in sessions],
-                "optimized": rows, "baseline": baseline.payload(), "evaluation": result.payload(),
-            })
+            with memory_lock:
+                if memory.cancelled.is_set():
+                    raise OptimizationCancelled
+                memory.update(status="completed")
+                memory.emit("RUN_COMPLETED", reason=reason)
+                save(status="completed", reason=reason, history=history, memory=memory.snapshot(), result={
+                    "original": [session_payload(s, s.original) for s in sessions],
+                    "optimized": rows, "baseline": baseline.payload(), "evaluation": result.payload(),
+                })
+        except OptimizationCancelled:
+            memory.update(status="cancelled")
+            memory.emit("RUN_CANCELLED")
+            save(status="cancelled", memory=memory.snapshot())
         except Exception:
             LOGGER.exception("Falló la optimización %s", run["id"])
-            save(status="failed", error="Falló la optimización. Consulte el registro del servidor.")
+            memory.update(status="failed")
+            memory.emit("RUN_FAILED")
+            save(status="failed", memory=memory.snapshot(),
+                 error="Falló la optimización. Consulte el registro del servidor.")
+        finally:
+            with memory_lock:
+                active_memory.pop(run["id"], None)
 
-    @app.post("/api/optimizations", status_code=202)
-    def submit(request: OptimizationInput):
+    def prepare(request: OptimizationInput):
         dataset = get("datasets", request.dataset_id)
         sessions = sessions_for(dataset)
         provided = request.rules.model_dump(exclude_unset=True)
@@ -244,17 +327,21 @@ def create_app(repository: Repository | None = None):
             merged[key] = {**merged.get(key, {}), **value} if isinstance(value, dict) else value
         inputs = RuleInput.model_validate(merged)
         valid_groups = {s.group_key for s in sessions if not s.tutoring}
-        if inputs.group_rooms.keys() - valid_groups or set(inputs.group_rooms.values()) - set(inputs.available_rooms):
+        if ((inputs.group_rooms.keys() | inputs.group_windows.keys()) - valid_groups
+                or set(inputs.group_rooms.values()) - set(inputs.available_rooms)):
             raise HTTPException(422, "Revisa los paralelos y sus aulas asignadas.")
         valid_teachers = {s.teacher for s in sessions}
         valid_rooms = set(inputs.available_rooms)
-        if not valid_rooms or valid_rooms - set(ROOMS) or len(valid_rooms) != len(inputs.available_rooms):
-            raise HTTPException(422, "Selecciona aulas únicas entre la 106 y la 112.")
+        if (not valid_rooms or len(valid_rooms) != len(inputs.available_rooms)
+                or not (valid_rooms <= set(ROOMS) or valid_rooms <= set(UPEC_ROOMS))):
+            raise HTTPException(422, "Selecciona aulas únicas de un solo catálogo.")
         if {s.original.room for s in sessions} - valid_rooms:
             raise HTTPException(422, "Las asignaciones iniciales contienen aulas fuera de la lista disponible.")
         valid_classes = {s.id for s in sessions if not s.tutoring}
         if (inputs.enrollments.keys() - {s.id for s in sessions}
-                or inputs.session_days.keys() - valid_classes
+                or set(inputs.locked_sessions) - {s.id for s in sessions}
+                or inputs.session_days.keys() - {s.id for s in sessions}
+                or set(inputs.movable_tutoring) - {s.id for s in sessions if s.tutoring and occupies_group(s)}
                 or inputs.class_minutes.keys() - valid_classes
                 or inputs.capacities.keys() - valid_rooms
                 or (inputs.availability.keys() | inputs.preferences.keys() | inputs.weekly_minutes.keys()) - valid_teachers):
@@ -290,16 +377,57 @@ def create_app(repository: Repository | None = None):
             sessions = tuple(adjusted)
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
+        return dataset, sessions, rules, inputs
+
+    @app.post("/api/planning/validate")
+    def validate_plan(request: OptimizationInput):
+        _, sessions, rules, _ = prepare(request)
+        return validate_feasibility(sessions, rules)
+
+    @app.post("/api/optimizations", status_code=202)
+    def submit(request: OptimizationInput):
+        dataset, sessions, rules, inputs = prepare(request)
+        if rules.campus_windows is not None:
+            diagnostics = validate_feasibility(sessions, rules)
+            if diagnostics["errors"]:
+                raise HTTPException(422, diagnostics["errors"][0]["message"])
         run = dict(id=str(uuid4()), dataset_id=dataset["id"], status="queued",
                    created_at=datetime.now(timezone.utc).isoformat(), progress=None,
                    parameters=request.parameters.model_dump(), rules=inputs.model_dump())
         repo().put("runs", run)
-        app.state.executor.submit(execute, run.copy(), sessions, rules, Config(**run["parameters"]))
+        config = Config(**run["parameters"])
+        memory = WorkingMemory(run["id"], dataset["id"], config)
+        with memory_lock:
+            active_memory[run["id"]] = memory
+        app.state.executor.submit(execute, run.copy(), sessions, rules, config, memory)
         return run
 
     @app.get("/api/optimizations/{identifier}")
     def status(identifier: UUID):
-        return {k: v for k, v in get("runs", identifier).items() if k not in {"history", "result"}}
+        return {k: v for k, v in get("runs", identifier).items() if k not in {"history", "result", "memory"}}
+
+    @app.get("/api/optimizations/{identifier}/memory", response_model=MemorySnapshot)
+    def run_memory(identifier: UUID):
+        with memory_lock:
+            memory = active_memory.get(str(identifier))
+            if memory:
+                return memory.snapshot()
+        run = get("runs", identifier)
+        return run.get("memory") or {
+            "run_id": run["id"], "scenario_id": run["dataset_id"], "status": run["status"],
+            "best": run.get("progress"), "seed": run["parameters"]["seed"],
+            "maximum_generations": run["parameters"]["generations"],
+        }
+
+    @app.post("/api/optimizations/{identifier}/cancel", status_code=202)
+    def cancel_run(identifier: UUID):
+        with memory_lock:
+            run = get("runs", identifier)
+            memory = active_memory.get(str(identifier))
+            if not memory or run["status"] not in {"queued", "running"}:
+                raise HTTPException(409, "La ejecución ya terminó.")
+            memory.cancelled.set()
+        return {"accepted": True}
 
     def completed(identifier):
         run = get("runs", identifier)

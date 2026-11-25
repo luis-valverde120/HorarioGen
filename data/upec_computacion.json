@@ -1,0 +1,323 @@
+{
+  "id": "upec-computacion-ces-2020",
+  "program": "Computación · UPEC",
+  "source": {
+    "document": "Plan_estudio_Computacion.pdf",
+    "resolution": "RPC-SE-09-No.086-2020",
+    "sha256": "CC6CB62518063995F847EBE5F48A26FE268371050A14C07DCE6243A2CCB67D98",
+    "note": "La malla ubica Titulación I en séptimo y Titulación II en octavo. El horario de referencia citado presenta Titulación I en octavo. Confirma la oferta del periodo."
+  },
+  "rooms": [
+    "206",
+    "207",
+    "208",
+    "209",
+    "210",
+    "211",
+    "212"
+  ],
+  "reference_teacher_count": 16,
+  "maximum_groups_per_semester": 2,
+  "subjects": [
+    {
+      "id": "1-1",
+      "semester": 1,
+      "name": "Física básica",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "1-2",
+      "semester": 1,
+      "name": "Fundamentos de programación",
+      "curriculum_hours": 216
+    },
+    {
+      "id": "1-3",
+      "semester": 1,
+      "name": "Geometría y trigonometría",
+      "curriculum_hours": 72
+    },
+    {
+      "id": "1-4",
+      "semester": 1,
+      "name": "Lectura y escritura académica",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "1-5",
+      "semester": 1,
+      "name": "Matemática aplicada",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "2-1",
+      "semester": 2,
+      "name": "Álgebra lineal",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "2-2",
+      "semester": 2,
+      "name": "Cálculo diferencial",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "2-3",
+      "semester": 2,
+      "name": "Física aplicada",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "2-4",
+      "semester": 2,
+      "name": "Matemáticas discretas",
+      "curriculum_hours": 72
+    },
+    {
+      "id": "2-5",
+      "semester": 2,
+      "name": "Programación orientada a objetos",
+      "curriculum_hours": 216
+    },
+    {
+      "id": "3-1",
+      "semester": 3,
+      "name": "Arquitectura de computadores",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "3-2",
+      "semester": 3,
+      "name": "Cálculo integral",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "3-3",
+      "semester": 3,
+      "name": "Estadística descriptiva",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "3-4",
+      "semester": 3,
+      "name": "Estructura de datos",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "3-5",
+      "semester": 3,
+      "name": "Metodología de la investigación",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "4-1",
+      "semester": 4,
+      "name": "Conductas emprendedoras",
+      "curriculum_hours": 72
+    },
+    {
+      "id": "4-2",
+      "semester": 4,
+      "name": "Ecuaciones diferenciales",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "4-3",
+      "semester": 4,
+      "name": "Estadística inferencial",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "4-4",
+      "semester": 4,
+      "name": "Fundamentos de base de datos",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "4-5",
+      "semester": 4,
+      "name": "Fundamentos de electrónica",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "4-6",
+      "semester": 4,
+      "name": "Métodos numéricos",
+      "curriculum_hours": 72
+    },
+    {
+      "id": "5-1",
+      "semester": 5,
+      "name": "Administración de base de datos",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "5-2",
+      "semester": 5,
+      "name": "Creatividad e innovación",
+      "curriculum_hours": 72
+    },
+    {
+      "id": "5-3",
+      "semester": 5,
+      "name": "Ingeniería de software",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "5-4",
+      "semester": 5,
+      "name": "Lenguajes de programación",
+      "curriculum_hours": 216
+    },
+    {
+      "id": "5-5",
+      "semester": 5,
+      "name": "Sistemas operativos",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "6-1",
+      "semester": 6,
+      "name": "Aplicaciones web",
+      "curriculum_hours": 216
+    },
+    {
+      "id": "6-2",
+      "semester": 6,
+      "name": "Contabilidad",
+      "curriculum_hours": 72
+    },
+    {
+      "id": "6-3",
+      "semester": 6,
+      "name": "Emprendimiento",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "6-4",
+      "semester": 6,
+      "name": "Procesamiento de imágenes",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "6-5",
+      "semester": 6,
+      "name": "Redes de computadoras",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "7-1",
+      "semester": 7,
+      "name": "Aplicaciones móviles",
+      "curriculum_hours": 216
+    },
+    {
+      "id": "7-2",
+      "semester": 7,
+      "name": "Normativas de ingeniería de software",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "7-3",
+      "semester": 7,
+      "name": "Producción audiovisual",
+      "curriculum_hours": 72
+    },
+    {
+      "id": "7-4",
+      "semester": 7,
+      "name": "Redes de computadoras y seguridades",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "7-5",
+      "semester": 7,
+      "name": "Seguridad informática",
+      "curriculum_hours": 72
+    },
+    {
+      "id": "7-6",
+      "semester": 7,
+      "name": "Titulación I",
+      "curriculum_hours": 72
+    },
+    {
+      "id": "7-7",
+      "semester": 7,
+      "name": "Visión por computador",
+      "curriculum_hours": 72
+    },
+    {
+      "id": "8-1",
+      "semester": 8,
+      "name": "Auditoría y derecho informático",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "8-2",
+      "semester": 8,
+      "name": "Computación gráfica",
+      "curriculum_hours": 72
+    },
+    {
+      "id": "8-3",
+      "semester": 8,
+      "name": "Fundamentos de robótica",
+      "curriculum_hours": 72
+    },
+    {
+      "id": "8-4",
+      "semester": 8,
+      "name": "Inteligencia artificial",
+      "curriculum_hours": 216
+    },
+    {
+      "id": "8-5",
+      "semester": 8,
+      "name": "Interacción hombre - máquina",
+      "curriculum_hours": 72
+    },
+    {
+      "id": "8-6",
+      "semester": 8,
+      "name": "Sistemas distribuidos",
+      "curriculum_hours": 72
+    },
+    {
+      "id": "8-7",
+      "semester": 8,
+      "name": "Titulación II",
+      "curriculum_hours": 72
+    },
+    {
+      "id": "9-1",
+      "semester": 9,
+      "name": "Legislación laboral y ética profesional",
+      "curriculum_hours": 144
+    },
+    {
+      "id": "9-2",
+      "semester": 9,
+      "name": "Programación de video juegos",
+      "curriculum_hours": 72
+    },
+    {
+      "id": "9-3",
+      "semester": 9,
+      "name": "Realidad virtual y aumentada",
+      "curriculum_hours": 72
+    },
+    {
+      "id": "9-4",
+      "semester": 9,
+      "name": "Sistemas expertos",
+      "curriculum_hours": 216
+    },
+    {
+      "id": "9-5",
+      "semester": 9,
+      "name": "Titulación III",
+      "curriculum_hours": 96
+    }
+  ]
+}

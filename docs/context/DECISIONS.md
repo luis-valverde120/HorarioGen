@@ -29,3 +29,11 @@ Record durable decisions here. Keep entries concise; revise an existing decision
 
 - **Decision:** Simulate room occupancy from scheduled activity intervals, not student movement or traffic.
 - **Rationale:** Enrollment and a verified building layout are not available in the example data.
+
+## D-006 — Separate curriculum totals and period teaching requirements
+
+The reference catalog preserves source hours and provenance. Dataset-specific offerings define weekly class and tutorial blocks. The UPEC demonstration generates synthetic offerings on its own classroom catalog, and custom calendars replace the legacy semester parity rule when present.
+
+## D-007 — Keep optimization memory on the existing worker
+
+The search owns the active population and publishes synchronized bounded snapshots for polling. The repository records compact terminal diagnostics, history, and results. This keeps application infrastructure local and preserves existing status and result routes.

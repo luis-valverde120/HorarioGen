@@ -26,10 +26,15 @@ This is a modular local monolith. The API and frontend are separate processes du
 - `backend/horariogen/teaching.py`: builds a new dataset from subject-level teacher assignments and weekly hours; retains linked tutoring and generates repeated class blocks.
 - `backend/horariogen/evaluation.py`: independently evaluates hard violations and soft penalties using lexicographic `(D, B)` scores.
 - `backend/horariogen/genetic.py`: initializes candidates, repairs conflicts, and runs selection, crossover, mutation, and elitism under generation/time limits.
-- `backend/horariogen/repository.py`: local dataset and run persistence as CSV/JSON with atomic file replacement and in-process locking.
+- `backend/horariogen/storage.py`: local dataset and run persistence as CSV/JSON with atomic file replacement and in-process locking.
+- `backend/horariogen/reference.py`: synthetic scenarios built from the versioned curriculum reference.
+- `backend/horariogen/feasibility.py`: deterministic planning diagnostics and allowed placement windows.
+- `backend/horariogen/working_memory.py`: per-run state and bounded event snapshots for the existing worker.
 - `backend/tests/`: backend unit and integration tests.
 
 Optimization requests are queued to a single worker so expensive scheduling does not block request handling. Runs expose status, metrics, result, and export routes. Interrupted queued/running runs are marked failed at startup.
+
+See [Optimization working memory](../WORKING_MEMORY.md) for the live lifecycle and [Scheduling model](../SCHEDULING_MODEL.md) for curriculum, calendars, and feasibility.
 
 ## Frontend
 

@@ -8,6 +8,7 @@ from zipfile import BadZipFile, ZipFile
 from .domain import DAYS, HEADERS, load_csv, parse_slot
 
 ROOMS = tuple(str(room) for room in range(106, 113))
+UPEC_ROOMS = tuple(str(room) for room in range(206, 213))
 SIMPLE_HEADERS = ("Materia", "Docente", "Grupo", "Duracion_Horas", "Tipo")
 SPANISH_DAYS = ("lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo")
 
@@ -22,8 +23,8 @@ def room_name(value):
         value = value[5:].strip()
     if value.endswith(".0"):
         value = value[:-2]
-    if value not in ROOMS:
-        raise ValueError("Las aulas admitidas son 106, 107, 108, 109, 110, 111 y 112.")
+    if value not in (*ROOMS, *UPEC_ROOMS):
+        raise ValueError("Usa un aula de los catálogos 106–112 o 206–212.")
     return value
 
 
@@ -78,6 +79,7 @@ def read_import(raw, filename, legacy=False):
     rules = {}
     warnings = []
     rooms = list(ROOMS)
+    explicit_rooms = False
     parallel_rows = []
     if filename.lower().endswith(".xlsx"):
         from openpyxl import load_workbook
@@ -91,6 +93,7 @@ def read_import(raw, filename, legacy=False):
                     raise ValueError("El Excel debe incluir una hoja llamada Sesiones.")
                 rows, fields = table_rows(book["Sesiones"])
                 if "Aulas" in book.sheetnames:
+                    explicit_rooms = True
                     room_rows, room_fields = table_rows(book["Aulas"])
                     if "Aula" not in room_fields:
                         raise ValueError("La hoja Aulas requiere la columna Aula.")
@@ -152,6 +155,10 @@ def read_import(raw, filename, legacy=False):
         warnings.append("Se generaron asignaciones iniciales para las sesiones. Ejecuta la optimización para evaluar y reorganizar el horario.")
     elif not set(HEADERS) <= set(fields):
         raise ValueError("Usa la plantilla o las columnas Materia, Docente, Grupo y Duracion_Horas.")
+    elif not explicit_rooms and all(room_name(row["Aula"]) in UPEC_ROOMS for row in rows):
+        rooms = list(UPEC_ROOMS)
+    if not (set(rooms) <= set(ROOMS) or set(rooms) <= set(UPEC_ROOMS)):
+        raise ValueError("Selecciona un solo catálogo de aulas por planificación.")
     for row in rows:
         row["Aula"] = room_name(row["Aula"])
         if row["Aula"] not in rooms:

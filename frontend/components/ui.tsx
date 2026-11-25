@@ -10,7 +10,7 @@ function cn(...inputs: ClassValue[]) {
 const buttonVariants = cva(
   "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition-colors disabled:opacity-50",
   { variants: { variant: {
-    primary: "bg-indigo-700 text-white hover:bg-indigo-800",
+    primary: "bg-[#106238] text-white hover:bg-[#084729]",
     outline: "border border-slate-300 bg-white text-slate-800 hover:bg-slate-50",
   } }, defaultVariants: { variant: "primary" } },
 );
