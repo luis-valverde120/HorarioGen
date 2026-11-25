@@ -1,0 +1,120 @@
+Franja_Horaria;Nivel_Semestre;Paralelo_Grupo;Carrera_Especialidad;Codigo_Asignatura;Docente;Aula;Programa_Academico;Tipo
+Wednesday 14:00 - 18:00;Semestre 1;A;Software;Fundamentos de programación;Mateo Salazar;106;Ingeniería de Computación;Clase
+Tuesday 11:00 - 13:00;Semestre 1;A;Software;Matemática básica;Camila Torres;106;Ingeniería de Computación;Clase
+Friday 09:00 - 11:00;Semestre 1;A;Software;Comunicación académica;Andrés Molina;106;Ingeniería de Computación;Clase
+Thursday 09:00 - 11:00;Semestre 1;A;Software;Introducción a la computación;Lucía Vega;106;Ingeniería de Computación;Clase
+Tuesday 07:00 - 09:00;Semestre 1;A;Software;Lógica matemática;Diego Paredes;106;Ingeniería de Computación;Clase
+Wednesday 07:00 - 11:00;Semestre 1;B;Software;Fundamentos de programación;Sofía Cabrera;107;Ingeniería de Computación;Clase
+Thursday 08:00 - 10:00;Semestre 1;B;Software;Matemática básica;Nicolás Herrera;107;Ingeniería de Computación;Clase
+Friday 08:00 - 10:00;Semestre 1;B;Software;Comunicación académica;Isabel Castro;107;Ingeniería de Computación;Clase
+Tuesday 07:00 - 09:00;Semestre 1;B;Software;Introducción a la computación;Gabriel Fuentes;107;Ingeniería de Computación;Clase
+Thursday 10:00 - 12:00;Semestre 1;B;Software;Lógica matemática;Valeria Ríos;107;Ingeniería de Computación;Clase
+Monday 10:00 - 12:00;Semestre 1;B;Software;Metodología de estudio;Mateo Salazar;107;Ingeniería de Computación;Clase
+Monday 14:00 - 16:00;Semestre 2;A;Software;Programación orientada a objetos;Andrés Molina;106;Ingeniería de Computación;Clase
+Thursday 18:00 - 20:00;Semestre 2;A;Software;Cálculo diferencial;Lucía Vega;106;Ingeniería de Computación;Clase
+Tuesday 16:00 - 18:00;Semestre 2;A;Software;Física aplicada;Diego Paredes;106;Ingeniería de Computación;Clase
+Friday 18:00 - 20:00;Semestre 2;A;Software;Álgebra lineal;Sofía Cabrera;106;Ingeniería de Computación;Clase
+Monday 18:00 - 20:00;Semestre 2;A;Software;Matemática discreta;Nicolás Herrera;106;Ingeniería de Computación;Clase
+Wednesday 18:00 - 20:00;Semestre 2;B;Software;Programación orientada a objetos;Isabel Castro;107;Ingeniería de Computación;Clase
+Tuesday 18:00 - 20:00;Semestre 2;B;Software;Cálculo diferencial;Gabriel Fuentes;107;Ingeniería de Computación;Clase
+Thursday 14:00 - 16:00;Semestre 2;B;Software;Física aplicada;Valeria Ríos;107;Ingeniería de Computación;Clase
+Monday 17:00 - 19:00;Semestre 2;B;Software;Álgebra lineal;Mateo Salazar;107;Ingeniería de Computación;Clase
+Friday 18:00 - 20:00;Semestre 2;B;Software;Matemática discreta;Camila Torres;107;Ingeniería de Computación;Clase
+Wednesday 14:00 - 16:00;Semestre 2;B;Software;Realidad nacional;Andrés Molina;107;Ingeniería de Computación;Clase
+Thursday 10:00 - 12:00;Semestre 3;A;Software;Estructuras de datos;Diego Paredes;108;Ingeniería de Computación;Clase
+Wednesday 11:00 - 13:00;Semestre 3;A;Software;Cálculo integral;Sofía Cabrera;108;Ingeniería de Computación;Clase
+Monday 10:00 - 12:00;Semestre 3;A;Software;Sistemas digitales;Nicolás Herrera;108;Ingeniería de Computación;Clase
+Friday 10:00 - 12:00;Semestre 3;A;Software;Probabilidad;Isabel Castro;108;Ingeniería de Computación;Clase
+Thursday 07:00 - 08:00;Semestre 3;A;Software;Análisis de algoritmos;Gabriel Fuentes;108;Ingeniería de Computación;Clase
+Friday 09:00 - 11:00;Semestre 3;B;Software;Estructuras de datos;Valeria Ríos;109;Ingeniería de Computación;Clase
+Thursday 09:00 - 11:00;Semestre 3;B;Software;Cálculo integral;Mateo Salazar;109;Ingeniería de Computación;Clase
+Monday 09:00 - 11:00;Semestre 3;B;Software;Sistemas digitales;Camila Torres;109;Ingeniería de Computación;Clase
+Tuesday 07:00 - 09:00;Semestre 3;B;Software;Probabilidad;Andrés Molina;109;Ingeniería de Computación;Clase
+Tuesday 12:00 - 13:00;Semestre 3;B;Software;Análisis de algoritmos;Lucía Vega;109;Ingeniería de Computación;Clase
+Thursday 07:00 - 09:00;Semestre 3;B;Software;Investigación científica;Diego Paredes;109;Ingeniería de Computación;Clase
+Thursday 14:00 - 16:00;Semestre 4;A;Software;Bases de datos;Nicolás Herrera;108;Ingeniería de Computación;Clase
+Wednesday 14:00 - 16:00;Semestre 4;A;Software;Estadística aplicada;Isabel Castro;108;Ingeniería de Computación;Clase
+Tuesday 15:00 - 17:00;Semestre 4;A;Software;Arquitectura de computadores;Gabriel Fuentes;108;Ingeniería de Computación;Clase
+Friday 16:00 - 18:00;Semestre 4;A;Software;Programación avanzada;Valeria Ríos;108;Ingeniería de Computación;Clase
+Wednesday 18:00 - 20:00;Semestre 4;A;Software;Ingeniería de requisitos;Mateo Salazar;108;Ingeniería de Computación;Clase
+Monday 18:00 - 20:00;Semestre 4;B;Software;Bases de datos;Camila Torres;109;Ingeniería de Computación;Clase
+Friday 16:00 - 18:00;Semestre 4;B;Software;Estadística aplicada;Andrés Molina;109;Ingeniería de Computación;Clase
+Wednesday 15:00 - 17:00;Semestre 4;B;Software;Arquitectura de computadores;Lucía Vega;109;Ingeniería de Computación;Clase
+Thursday 16:00 - 18:00;Semestre 4;B;Software;Programación avanzada;Diego Paredes;109;Ingeniería de Computación;Clase
+Wednesday 17:00 - 19:00;Semestre 4;B;Software;Ingeniería de requisitos;Sofía Cabrera;109;Ingeniería de Computación;Clase
+Monday 15:00 - 17:00;Semestre 4;B;Software;Interacción humano computador;Nicolás Herrera;109;Ingeniería de Computación;Clase
+Thursday 09:00 - 11:00;Semestre 5;A;Software;Programación web;Gabriel Fuentes;110;Ingeniería de Computación;Clase
+Wednesday 08:00 - 10:00;Semestre 5;A;Software;Redes de computadores;Valeria Ríos;110;Ingeniería de Computación;Clase
+Monday 08:00 - 10:00;Semestre 5;A;Software;Sistemas operativos;Mateo Salazar;110;Ingeniería de Computación;Clase
+Friday 10:00 - 12:00;Semestre 5;A;Software;Diseño de software;Camila Torres;110;Ingeniería de Computación;Clase
+Tuesday 10:00 - 12:00;Semestre 5;A;Software;Gestión de bases de datos;Andrés Molina;110;Ingeniería de Computación;Clase
+Wednesday 07:00 - 09:00;Semestre 5;B;Software;Programación web;Lucía Vega;111;Ingeniería de Computación;Clase
+Friday 10:00 - 12:00;Semestre 5;B;Software;Redes de computadores;Diego Paredes;111;Ingeniería de Computación;Clase
+Monday 10:00 - 12:00;Semestre 5;B;Software;Sistemas operativos;Sofía Cabrera;111;Ingeniería de Computación;Clase
+Thursday 10:00 - 12:00;Semestre 5;B;Software;Diseño de software;Nicolás Herrera;111;Ingeniería de Computación;Clase
+Monday 08:00 - 10:00;Semestre 5;B;Software;Gestión de bases de datos;Isabel Castro;111;Ingeniería de Computación;Clase
+Wednesday 10:00 - 12:00;Semestre 5;B;Software;Investigación operativa;Gabriel Fuentes;111;Ingeniería de Computación;Clase
+Wednesday 16:00 - 18:00;Semestre 6;A;Software;Ingeniería de software;Mateo Salazar;110;Ingeniería de Computación;Clase
+Thursday 16:00 - 18:00;Semestre 6;A;Software;Seguridad informática;Camila Torres;110;Ingeniería de Computación;Clase
+Monday 17:00 - 19:00;Semestre 6;A;Software;Aplicaciones web;Andrés Molina;110;Ingeniería de Computación;Clase
+Tuesday 16:00 - 18:00;Semestre 6;A;Software;Administración de redes;Lucía Vega;110;Ingeniería de Computación;Clase
+Friday 14:00 - 15:00;Semestre 6;A;Software;Calidad de software;Diego Paredes;110;Ingeniería de Computación;Clase
+Friday 16:00 - 18:00;Semestre 6;B;Software;Ingeniería de software;Sofía Cabrera;111;Ingeniería de Computación;Clase
+Tuesday 17:00 - 19:00;Semestre 6;B;Software;Seguridad informática;Nicolás Herrera;111;Ingeniería de Computación;Clase
+Monday 14:00 - 16:00;Semestre 6;B;Software;Aplicaciones web;Isabel Castro;111;Ingeniería de Computación;Clase
+Wednesday 14:00 - 16:00;Semestre 6;B;Software;Administración de redes;Gabriel Fuentes;111;Ingeniería de Computación;Clase
+Tuesday 15:00 - 16:00;Semestre 6;B;Software;Calidad de software;Valeria Ríos;111;Ingeniería de Computación;Clase
+Friday 18:00 - 20:00;Semestre 6;B;Software;Sistemas de información;Mateo Salazar;111;Ingeniería de Computación;Clase
+Friday 11:00 - 13:00;Semestre 7;A;Software;Aplicaciones móviles;Andrés Molina;112;Ingeniería de Computación;Clase
+Tuesday 09:00 - 11:00;Semestre 7;A;Software;Sistemas distribuidos;Lucía Vega;112;Ingeniería de Computación;Clase
+Wednesday 10:00 - 12:00;Semestre 7;A;Software;Inteligencia artificial;Diego Paredes;112;Ingeniería de Computación;Clase
+Thursday 11:00 - 13:00;Semestre 7;A;Software;Visión por computador;Sofía Cabrera;112;Ingeniería de Computación;Clase
+Friday 08:00 - 10:00;Semestre 7;A;Software;Normativas de ingeniería de software;Nicolás Herrera;112;Ingeniería de Computación;Clase
+Wednesday 11:00 - 13:00;Semestre 7;B;Software;Aplicaciones móviles;Isabel Castro;106;Ingeniería de Computación;Clase
+Thursday 11:00 - 13:00;Semestre 7;B;Software;Sistemas distribuidos;Gabriel Fuentes;106;Ingeniería de Computación;Clase
+Tuesday 09:00 - 11:00;Semestre 7;B;Software;Inteligencia artificial;Valeria Ríos;106;Ingeniería de Computación;Clase
+Friday 11:00 - 13:00;Semestre 7;B;Software;Visión por computador;Mateo Salazar;106;Ingeniería de Computación;Clase
+Monday 07:00 - 09:00;Semestre 7;B;Software;Normativas de ingeniería de software;Camila Torres;106;Ingeniería de Computación;Clase
+Monday 10:00 - 12:00;Semestre 7;B;Software;Redes y seguridades;Andrés Molina;106;Ingeniería de Computación;Clase
+Thursday 18:00 - 20:00;Semestre 8;A;Software;Aprendizaje automático;Diego Paredes;112;Ingeniería de Computación;Clase
+Monday 14:00 - 16:00;Semestre 8;A;Software;Servicios en la nube;Sofía Cabrera;112;Ingeniería de Computación;Clase
+Tuesday 14:00 - 16:00;Semestre 8;A;Software;Auditoría informática;Nicolás Herrera;112;Ingeniería de Computación;Clase
+Friday 15:00 - 17:00;Semestre 8;A;Software;Gestión de proyectos;Isabel Castro;112;Ingeniería de Computación;Clase
+Thursday 14:00 - 16:00;Semestre 8;A;Software;Minería de datos;Gabriel Fuentes;112;Ingeniería de Computación;Clase
+Wednesday 14:00 - 16:00;Semestre 8;B;Software;Aprendizaje automático;Valeria Ríos;106;Ingeniería de Computación;Clase
+Friday 14:00 - 16:00;Semestre 8;B;Software;Servicios en la nube;Mateo Salazar;106;Ingeniería de Computación;Clase
+Tuesday 18:00 - 20:00;Semestre 8;B;Software;Auditoría informática;Camila Torres;106;Ingeniería de Computación;Clase
+Wednesday 17:00 - 19:00;Semestre 8;B;Software;Gestión de proyectos;Andrés Molina;106;Ingeniería de Computación;Clase
+Thursday 15:00 - 17:00;Semestre 8;B;Software;Minería de datos;Lucía Vega;106;Ingeniería de Computación;Clase
+Friday 16:00 - 18:00;Semestre 8;B;Software;Computación gráfica;Diego Paredes;106;Ingeniería de Computación;Clase
+Friday 11:00 - 13:00;Semestre 9;A;Software;Proyecto integrador;Nicolás Herrera;107;Ingeniería de Computación;Clase
+Tuesday 11:00 - 13:00;Semestre 9;A;Software;Emprendimiento tecnológico;Isabel Castro;107;Ingeniería de Computación;Clase
+Monday 07:00 - 09:00;Semestre 9;A;Software;Ética profesional;Gabriel Fuentes;107;Ingeniería de Computación;Clase
+Wednesday 11:00 - 13:00;Semestre 9;A;Software;Arquitectura de software;Valeria Ríos;107;Ingeniería de Computación;Clase
+Thursday 07:00 - 08:00;Semestre 9;A;Software;Simulación de sistemas;Mateo Salazar;107;Ingeniería de Computación;Clase
+Tuesday 09:00 - 11:00;Semestre 9;B;Software;Proyecto integrador;Camila Torres;108;Ingeniería de Computación;Clase
+Wednesday 09:00 - 11:00;Semestre 9;B;Software;Emprendimiento tecnológico;Andrés Molina;108;Ingeniería de Computación;Clase
+Monday 08:00 - 10:00;Semestre 9;B;Software;Ética profesional;Lucía Vega;108;Ingeniería de Computación;Clase
+Friday 07:00 - 09:00;Semestre 9;B;Software;Arquitectura de software;Diego Paredes;108;Ingeniería de Computación;Clase
+Thursday 09:00 - 10:00;Semestre 9;B;Software;Simulación de sistemas;Sofía Cabrera;108;Ingeniería de Computación;Clase
+Tuesday 07:00 - 09:00;Semestre 9;B;Software;Innovación tecnológica;Nicolás Herrera;108;Ingeniería de Computación;Clase
+Wednesday 07:00 - 09:00;Semestre 7;A;Software;Aplicaciones móviles;Andrés Molina;112;Ingeniería de Computación;Clase
+Tuesday 18:00 - 20:00;Semestre 8;A;Software;Aprendizaje automático;Diego Paredes;112;Ingeniería de Computación;Clase
+Monday 12:00 - 13:00;Semestre 1;A;Software;Fundamentos de programación;Mateo Salazar;106;Ingeniería de Computación;Tutoria
+Monday 09:00 - 10:00;Semestre 1;B;Software;Fundamentos de programación;Sofía Cabrera;107;Ingeniería de Computación;Tutoria
+Wednesday 16:00 - 17:00;Semestre 2;A;Software;Programación orientada a objetos;Andrés Molina;106;Ingeniería de Computación;Tutoria
+Friday 17:00 - 18:00;Semestre 2;B;Software;Programación orientada a objetos;Isabel Castro;107;Ingeniería de Computación;Tutoria
+Tuesday 11:00 - 12:00;Semestre 3;A;Software;Estructuras de datos;Diego Paredes;108;Ingeniería de Computación;Tutoria
+Wednesday 07:00 - 08:00;Semestre 3;B;Software;Estructuras de datos;Valeria Ríos;109;Ingeniería de Computación;Tutoria
+Monday 17:00 - 18:00;Semestre 4;A;Software;Bases de datos;Nicolás Herrera;108;Ingeniería de Computación;Tutoria
+Tuesday 16:00 - 17:00;Semestre 4;B;Software;Bases de datos;Camila Torres;109;Ingeniería de Computación;Tutoria
+Tuesday 09:00 - 10:00;Semestre 5;A;Software;Programación web;Gabriel Fuentes;110;Ingeniería de Computación;Tutoria
+Tuesday 07:00 - 08:00;Semestre 5;B;Software;Programación web;Lucía Vega;111;Ingeniería de Computación;Tutoria
+Friday 16:00 - 17:00;Semestre 6;A;Software;Ingeniería de software;Mateo Salazar;110;Ingeniería de Computación;Tutoria
+Thursday 19:00 - 20:00;Semestre 6;B;Software;Ingeniería de software;Sofía Cabrera;111;Ingeniería de Computación;Tutoria
+Monday 08:00 - 09:00;Semestre 7;A;Software;Aplicaciones móviles;Andrés Molina;112;Ingeniería de Computación;Tutoria
+Friday 07:00 - 08:00;Semestre 7;B;Software;Aplicaciones móviles;Isabel Castro;106;Ingeniería de Computación;Tutoria
+Wednesday 14:00 - 15:00;Semestre 8;A;Software;Aprendizaje automático;Diego Paredes;112;Ingeniería de Computación;Tutoria
+Thursday 17:00 - 18:00;Semestre 8;B;Software;Aprendizaje automático;Valeria Ríos;106;Ingeniería de Computación;Tutoria
+Tuesday 10:00 - 11:00;Semestre 9;A;Software;Proyecto integrador;Nicolás Herrera;107;Ingeniería de Computación;Tutoria
+Friday 09:00 - 10:00;Semestre 9;B;Software;Proyecto integrador;Camila Torres;108;Ingeniería de Computación;Tutoria

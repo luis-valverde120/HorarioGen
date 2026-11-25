@@ -1,0 +1,120 @@
+﻿Materia;Docente;Grupo;Duracion_Horas;Tipo;Semestre
+Fundamentos de programación;Mateo Salazar;A;4;Clase;Semestre 1
+Matemática básica;Camila Torres;A;2;Clase;Semestre 1
+Comunicación académica;Andrés Molina;A;2;Clase;Semestre 1
+Introducción a la computación;Lucía Vega;A;2;Clase;Semestre 1
+Lógica matemática;Diego Paredes;A;2;Clase;Semestre 1
+Fundamentos de programación;Sofía Cabrera;B;4;Clase;Semestre 1
+Matemática básica;Nicolás Herrera;B;2;Clase;Semestre 1
+Comunicación académica;Isabel Castro;B;2;Clase;Semestre 1
+Introducción a la computación;Gabriel Fuentes;B;2;Clase;Semestre 1
+Lógica matemática;Valeria Ríos;B;2;Clase;Semestre 1
+Metodología de estudio;Mateo Salazar;B;2;Clase;Semestre 1
+Programación orientada a objetos;Andrés Molina;A;2;Clase;Semestre 2
+Cálculo diferencial;Lucía Vega;A;2;Clase;Semestre 2
+Física aplicada;Diego Paredes;A;2;Clase;Semestre 2
+Álgebra lineal;Sofía Cabrera;A;2;Clase;Semestre 2
+Matemática discreta;Nicolás Herrera;A;2;Clase;Semestre 2
+Programación orientada a objetos;Isabel Castro;B;2;Clase;Semestre 2
+Cálculo diferencial;Gabriel Fuentes;B;2;Clase;Semestre 2
+Física aplicada;Valeria Ríos;B;2;Clase;Semestre 2
+Álgebra lineal;Mateo Salazar;B;2;Clase;Semestre 2
+Matemática discreta;Camila Torres;B;2;Clase;Semestre 2
+Realidad nacional;Andrés Molina;B;2;Clase;Semestre 2
+Estructuras de datos;Diego Paredes;A;2;Clase;Semestre 3
+Cálculo integral;Sofía Cabrera;A;2;Clase;Semestre 3
+Sistemas digitales;Nicolás Herrera;A;2;Clase;Semestre 3
+Probabilidad;Isabel Castro;A;2;Clase;Semestre 3
+Análisis de algoritmos;Gabriel Fuentes;A;1;Clase;Semestre 3
+Estructuras de datos;Valeria Ríos;B;2;Clase;Semestre 3
+Cálculo integral;Mateo Salazar;B;2;Clase;Semestre 3
+Sistemas digitales;Camila Torres;B;2;Clase;Semestre 3
+Probabilidad;Andrés Molina;B;2;Clase;Semestre 3
+Análisis de algoritmos;Lucía Vega;B;1;Clase;Semestre 3
+Investigación científica;Diego Paredes;B;2;Clase;Semestre 3
+Bases de datos;Nicolás Herrera;A;2;Clase;Semestre 4
+Estadística aplicada;Isabel Castro;A;2;Clase;Semestre 4
+Arquitectura de computadores;Gabriel Fuentes;A;2;Clase;Semestre 4
+Programación avanzada;Valeria Ríos;A;2;Clase;Semestre 4
+Ingeniería de requisitos;Mateo Salazar;A;2;Clase;Semestre 4
+Bases de datos;Camila Torres;B;2;Clase;Semestre 4
+Estadística aplicada;Andrés Molina;B;2;Clase;Semestre 4
+Arquitectura de computadores;Lucía Vega;B;2;Clase;Semestre 4
+Programación avanzada;Diego Paredes;B;2;Clase;Semestre 4
+Ingeniería de requisitos;Sofía Cabrera;B;2;Clase;Semestre 4
+Interacción humano computador;Nicolás Herrera;B;2;Clase;Semestre 4
+Programación web;Gabriel Fuentes;A;2;Clase;Semestre 5
+Redes de computadores;Valeria Ríos;A;2;Clase;Semestre 5
+Sistemas operativos;Mateo Salazar;A;2;Clase;Semestre 5
+Diseño de software;Camila Torres;A;2;Clase;Semestre 5
+Gestión de bases de datos;Andrés Molina;A;2;Clase;Semestre 5
+Programación web;Lucía Vega;B;2;Clase;Semestre 5
+Redes de computadores;Diego Paredes;B;2;Clase;Semestre 5
+Sistemas operativos;Sofía Cabrera;B;2;Clase;Semestre 5
+Diseño de software;Nicolás Herrera;B;2;Clase;Semestre 5
+Gestión de bases de datos;Isabel Castro;B;2;Clase;Semestre 5
+Investigación operativa;Gabriel Fuentes;B;2;Clase;Semestre 5
+Ingeniería de software;Mateo Salazar;A;2;Clase;Semestre 6
+Seguridad informática;Camila Torres;A;2;Clase;Semestre 6
+Aplicaciones web;Andrés Molina;A;2;Clase;Semestre 6
+Administración de redes;Lucía Vega;A;2;Clase;Semestre 6
+Calidad de software;Diego Paredes;A;1;Clase;Semestre 6
+Ingeniería de software;Sofía Cabrera;B;2;Clase;Semestre 6
+Seguridad informática;Nicolás Herrera;B;2;Clase;Semestre 6
+Aplicaciones web;Isabel Castro;B;2;Clase;Semestre 6
+Administración de redes;Gabriel Fuentes;B;2;Clase;Semestre 6
+Calidad de software;Valeria Ríos;B;1;Clase;Semestre 6
+Sistemas de información;Mateo Salazar;B;2;Clase;Semestre 6
+Aplicaciones móviles;Andrés Molina;A;2;Clase;Semestre 7
+Sistemas distribuidos;Lucía Vega;A;2;Clase;Semestre 7
+Inteligencia artificial;Diego Paredes;A;2;Clase;Semestre 7
+Visión por computador;Sofía Cabrera;A;2;Clase;Semestre 7
+Normativas de ingeniería de software;Nicolás Herrera;A;2;Clase;Semestre 7
+Aplicaciones móviles;Isabel Castro;B;2;Clase;Semestre 7
+Sistemas distribuidos;Gabriel Fuentes;B;2;Clase;Semestre 7
+Inteligencia artificial;Valeria Ríos;B;2;Clase;Semestre 7
+Visión por computador;Mateo Salazar;B;2;Clase;Semestre 7
+Normativas de ingeniería de software;Camila Torres;B;2;Clase;Semestre 7
+Redes y seguridades;Andrés Molina;B;2;Clase;Semestre 7
+Aprendizaje automático;Diego Paredes;A;2;Clase;Semestre 8
+Servicios en la nube;Sofía Cabrera;A;2;Clase;Semestre 8
+Auditoría informática;Nicolás Herrera;A;2;Clase;Semestre 8
+Gestión de proyectos;Isabel Castro;A;2;Clase;Semestre 8
+Minería de datos;Gabriel Fuentes;A;2;Clase;Semestre 8
+Aprendizaje automático;Valeria Ríos;B;2;Clase;Semestre 8
+Servicios en la nube;Mateo Salazar;B;2;Clase;Semestre 8
+Auditoría informática;Camila Torres;B;2;Clase;Semestre 8
+Gestión de proyectos;Andrés Molina;B;2;Clase;Semestre 8
+Minería de datos;Lucía Vega;B;2;Clase;Semestre 8
+Computación gráfica;Diego Paredes;B;2;Clase;Semestre 8
+Proyecto integrador;Nicolás Herrera;A;2;Clase;Semestre 9
+Emprendimiento tecnológico;Isabel Castro;A;2;Clase;Semestre 9
+Ética profesional;Gabriel Fuentes;A;2;Clase;Semestre 9
+Arquitectura de software;Valeria Ríos;A;2;Clase;Semestre 9
+Simulación de sistemas;Mateo Salazar;A;1;Clase;Semestre 9
+Proyecto integrador;Camila Torres;B;2;Clase;Semestre 9
+Emprendimiento tecnológico;Andrés Molina;B;2;Clase;Semestre 9
+Ética profesional;Lucía Vega;B;2;Clase;Semestre 9
+Arquitectura de software;Diego Paredes;B;2;Clase;Semestre 9
+Simulación de sistemas;Sofía Cabrera;B;1;Clase;Semestre 9
+Innovación tecnológica;Nicolás Herrera;B;2;Clase;Semestre 9
+Aplicaciones móviles;Andrés Molina;A;2;Clase;Semestre 7
+Aprendizaje automático;Diego Paredes;A;2;Clase;Semestre 8
+Fundamentos de programación;Mateo Salazar;A;1;Tutoria;Semestre 1
+Fundamentos de programación;Sofía Cabrera;B;1;Tutoria;Semestre 1
+Programación orientada a objetos;Andrés Molina;A;1;Tutoria;Semestre 2
+Programación orientada a objetos;Isabel Castro;B;1;Tutoria;Semestre 2
+Estructuras de datos;Diego Paredes;A;1;Tutoria;Semestre 3
+Estructuras de datos;Valeria Ríos;B;1;Tutoria;Semestre 3
+Bases de datos;Nicolás Herrera;A;1;Tutoria;Semestre 4
+Bases de datos;Camila Torres;B;1;Tutoria;Semestre 4
+Programación web;Gabriel Fuentes;A;1;Tutoria;Semestre 5
+Programación web;Lucía Vega;B;1;Tutoria;Semestre 5
+Ingeniería de software;Mateo Salazar;A;1;Tutoria;Semestre 6
+Ingeniería de software;Sofía Cabrera;B;1;Tutoria;Semestre 6
+Aplicaciones móviles;Andrés Molina;A;1;Tutoria;Semestre 7
+Aplicaciones móviles;Isabel Castro;B;1;Tutoria;Semestre 7
+Aprendizaje automático;Diego Paredes;A;1;Tutoria;Semestre 8
+Aprendizaje automático;Valeria Ríos;B;1;Tutoria;Semestre 8
+Proyecto integrador;Nicolás Herrera;A;1;Tutoria;Semestre 9
+Proyecto integrador;Camila Torres;B;1;Tutoria;Semestre 9

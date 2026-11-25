@@ -1,0 +1,145 @@
+{
+  "available_rooms": [
+    "106",
+    "107",
+    "108",
+    "109",
+    "110",
+    "111",
+    "112"
+  ],
+  "weekly_minutes": {
+    "Mateo Salazar": 1500,
+    "Camila Torres": 1200,
+    "Andrés Molina": 1560,
+    "Lucía Vega": 1080,
+    "Diego Paredes": 1500,
+    "Sofía Cabrera": 1260,
+    "Nicolás Herrera": 1440,
+    "Isabel Castro": 1200,
+    "Gabriel Fuentes": 1200,
+    "Valeria Ríos": 1140
+  },
+  "availability": {
+    "Valeria Ríos": [
+      "Tuesday 07:00 - 13:00",
+      "Tuesday 14:00 - 20:00",
+      "Wednesday 07:00 - 13:00",
+      "Wednesday 14:00 - 20:00",
+      "Thursday 07:00 - 13:00",
+      "Thursday 14:00 - 20:00",
+      "Friday 07:00 - 13:00",
+      "Friday 14:00 - 20:00"
+    ],
+    "Mateo Salazar": [
+      "Monday 07:00 - 13:00",
+      "Monday 14:00 - 20:00",
+      "Wednesday 07:00 - 13:00",
+      "Wednesday 14:00 - 20:00",
+      "Thursday 07:00 - 13:00",
+      "Thursday 14:00 - 20:00",
+      "Friday 07:00 - 13:00",
+      "Friday 14:00 - 20:00"
+    ],
+    "Camila Torres": [
+      "Monday 07:00 - 13:00",
+      "Monday 14:00 - 20:00",
+      "Tuesday 07:00 - 13:00",
+      "Tuesday 14:00 - 20:00",
+      "Thursday 07:00 - 13:00",
+      "Thursday 14:00 - 20:00",
+      "Friday 07:00 - 13:00",
+      "Friday 14:00 - 20:00"
+    ],
+    "Andrés Molina": [
+      "Monday 07:00 - 13:00",
+      "Monday 14:00 - 20:00",
+      "Tuesday 07:00 - 13:00",
+      "Tuesday 14:00 - 20:00",
+      "Wednesday 07:00 - 13:00",
+      "Wednesday 14:00 - 20:00",
+      "Friday 07:00 - 13:00",
+      "Friday 14:00 - 20:00"
+    ],
+    "Lucía Vega": [
+      "Monday 07:00 - 13:00",
+      "Monday 14:00 - 20:00",
+      "Tuesday 07:00 - 13:00",
+      "Tuesday 14:00 - 20:00",
+      "Wednesday 07:00 - 13:00",
+      "Wednesday 14:00 - 20:00",
+      "Thursday 07:00 - 13:00",
+      "Thursday 14:00 - 20:00"
+    ],
+    "Diego Paredes": [
+      "Tuesday 07:00 - 13:00",
+      "Tuesday 14:00 - 20:00",
+      "Wednesday 07:00 - 13:00",
+      "Wednesday 14:00 - 20:00",
+      "Thursday 07:00 - 13:00",
+      "Thursday 14:00 - 20:00",
+      "Friday 07:00 - 13:00",
+      "Friday 14:00 - 20:00"
+    ],
+    "Sofía Cabrera": [
+      "Monday 07:00 - 13:00",
+      "Monday 14:00 - 20:00",
+      "Wednesday 07:00 - 13:00",
+      "Wednesday 14:00 - 20:00",
+      "Thursday 07:00 - 13:00",
+      "Thursday 14:00 - 20:00",
+      "Friday 07:00 - 13:00",
+      "Friday 14:00 - 20:00"
+    ],
+    "Nicolás Herrera": [
+      "Monday 07:00 - 13:00",
+      "Monday 14:00 - 20:00",
+      "Tuesday 07:00 - 13:00",
+      "Tuesday 14:00 - 20:00",
+      "Thursday 07:00 - 13:00",
+      "Thursday 14:00 - 20:00",
+      "Friday 07:00 - 13:00",
+      "Friday 14:00 - 20:00"
+    ],
+    "Isabel Castro": [
+      "Monday 07:00 - 13:00",
+      "Monday 14:00 - 20:00",
+      "Tuesday 07:00 - 13:00",
+      "Tuesday 14:00 - 20:00",
+      "Wednesday 07:00 - 13:00",
+      "Wednesday 14:00 - 20:00",
+      "Friday 07:00 - 13:00",
+      "Friday 14:00 - 20:00"
+    ],
+    "Gabriel Fuentes": [
+      "Monday 07:00 - 13:00",
+      "Monday 14:00 - 20:00",
+      "Tuesday 07:00 - 13:00",
+      "Tuesday 14:00 - 20:00",
+      "Wednesday 07:00 - 13:00",
+      "Wednesday 14:00 - 20:00",
+      "Thursday 07:00 - 13:00",
+      "Thursday 14:00 - 20:00"
+    ]
+  },
+  "group_rooms": {
+    "[\"Ingeniería de Computación\",\"Software\",\"Semestre 1\",\"A\"]": "106",
+    "[\"Ingeniería de Computación\",\"Software\",\"Semestre 1\",\"B\"]": "107",
+    "[\"Ingeniería de Computación\",\"Software\",\"Semestre 2\",\"A\"]": "106",
+    "[\"Ingeniería de Computación\",\"Software\",\"Semestre 2\",\"B\"]": "107",
+    "[\"Ingeniería de Computación\",\"Software\",\"Semestre 3\",\"A\"]": "108",
+    "[\"Ingeniería de Computación\",\"Software\",\"Semestre 3\",\"B\"]": "109",
+    "[\"Ingeniería de Computación\",\"Software\",\"Semestre 4\",\"A\"]": "108",
+    "[\"Ingeniería de Computación\",\"Software\",\"Semestre 4\",\"B\"]": "109",
+    "[\"Ingeniería de Computación\",\"Software\",\"Semestre 5\",\"A\"]": "110",
+    "[\"Ingeniería de Computación\",\"Software\",\"Semestre 5\",\"B\"]": "111",
+    "[\"Ingeniería de Computación\",\"Software\",\"Semestre 6\",\"A\"]": "110",
+    "[\"Ingeniería de Computación\",\"Software\",\"Semestre 6\",\"B\"]": "111",
+    "[\"Ingeniería de Computación\",\"Software\",\"Semestre 7\",\"A\"]": "112",
+    "[\"Ingeniería de Computación\",\"Software\",\"Semestre 7\",\"B\"]": "106",
+    "[\"Ingeniería de Computación\",\"Software\",\"Semestre 8\",\"A\"]": "112",
+    "[\"Ingeniería de Computación\",\"Software\",\"Semestre 8\",\"B\"]": "106",
+    "[\"Ingeniería de Computación\",\"Software\",\"Semestre 9\",\"A\"]": "107",
+    "[\"Ingeniería de Computación\",\"Software\",\"Semestre 9\",\"B\"]": "108"
+  }
+}
